@@ -27,6 +27,6 @@ e padronizadas para facil identificação futura.
 - feat; Nova Funcionalidade.
 - fix; Correção de erros.
 - docs; Alteração de documentação.
-- refactor; Alteração na estrutura do código sem mudar funcionalidade.
+- refactor; Alteração na estrutura do código ou pastas sem mudar funcionalidade.
 - test; Criação ou alteração de testes.
 - chore; Manutenção e configuração do projeto.

@@ -26,7 +26,12 @@ public class TelaHistorico extends javax.swing.JFrame {
     public TelaHistorico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Colmeia");
         modelo.addColumn("Manejo");

@@ -25,7 +25,12 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     public TelaLocalizacao() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Nome do setor");
         modelo.addColumn("Descricao");

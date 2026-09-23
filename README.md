@@ -11,6 +11,11 @@ banco de dados com a possibilidade de controle, registro, atualização, exclus�
 será usado como banco de dados e JDBC será usado para a comunicação dos dados e 
 FlatLaf para a interface gráfica.
 
+OBS Branches:
+dev: Versão de desenvolvimento, definida como padrão.
+prod: Versão estável, main.
+sandbox: Versão de testes e planejamentos maiores ou avulsos.
+
 Utilizando: Para funcionar será necessário que seja configurado o banco de dados 
 com o script de configuração (arquivo ApiCativo.sql)  e executar a aplicação 
 Java.

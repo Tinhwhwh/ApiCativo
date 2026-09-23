@@ -60,6 +60,8 @@ public class TelaManejo extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         jLabel3.setText("Tipo:");
 
         tabela.setModel(new javax.swing.table.DefaultTableModel(

@@ -60,6 +60,8 @@ public class TelaLocalizacao extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         jLabel2.setText("ID:");
 
         jLabel3.setText("Nome do setor:");

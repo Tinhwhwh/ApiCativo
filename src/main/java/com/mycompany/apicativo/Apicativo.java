@@ -1,4 +1,4 @@
-package ApiCativo;
+package com.mycompany.apicativo;
 
 import com.formdev.flatlaf.FlatDarkLaf;
 import javax.swing.JOptionPane;

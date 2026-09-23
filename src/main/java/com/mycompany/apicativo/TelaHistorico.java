@@ -27,7 +27,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         modelo = new DefaultTableModel() {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int linha, int coluna) {
                 return false;
             }
         };
@@ -311,28 +311,28 @@ public class TelaHistorico extends javax.swing.JFrame {
     // carrega as colmeias, manejos e tecnicos nos combos
     public void carregarCombos() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
 
-            ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
+            ResultSet resultado = comando.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
             cmbColmeia.removeAllItems();
-            while (rs.next()) {
-                cmbColmeia.addItem(ItemCombo.montar(rs.getInt("id_colmeia"), rs.getString("codigo_identificador")));
+            while (resultado.next()) {
+                cmbColmeia.addItem(ItemCombo.montar(resultado.getInt("id_colmeia"), resultado.getString("codigo_identificador")));
             }
 
-            rs = st.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
+            resultado = comando.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
             cmbManejo.removeAllItems();
-            while (rs.next()) {
-                cmbManejo.addItem(ItemCombo.montar(rs.getInt("id_manejo"), rs.getString("tipo_procedimento")));
+            while (resultado.next()) {
+                cmbManejo.addItem(ItemCombo.montar(resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento")));
             }
 
-            rs = st.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
+            resultado = comando.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
             cmbTecnico.removeAllItems();
-            while (rs.next()) {
-                cmbTecnico.addItem(ItemCombo.montar(rs.getInt("id_tecnico"), rs.getString("nome")));
+            while (resultado.next()) {
+                cmbTecnico.addItem(ItemCombo.montar(resultado.getInt("id_tecnico"), resultado.getString("nome")));
             }
 
-            con.close();
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao carregar dados: " + e.getMessage());
         }
@@ -360,13 +360,13 @@ public class TelaHistorico extends javax.swing.JFrame {
         String idManejo = ItemCombo.idSelecionado(cmbManejo);
         String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "INSERT INTO colmeia_manejo (id_colmeia, id_manejo, data_realizacao, observacoes, id_tecnico) VALUES ("
                     + idColmeia + ", " + idManejo + ", '" + data + "', '" + txtObs.getText() + "', " + idTecnico + ")";
             System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            comando.executeUpdate(sql);
+            conexao.close();
             JOptionPane.showMessageDialog(null, "Manejo registrado no historico!");
             limpar();
             listar();
@@ -397,14 +397,14 @@ public class TelaHistorico extends javax.swing.JFrame {
         String idManejo = ItemCombo.idSelecionado(cmbManejo);
         String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "UPDATE colmeia_manejo SET id_colmeia = " + idColmeia + ", id_manejo = " + idManejo + ", data_realizacao = '" + data
                     + "', observacoes = '" + txtObs.getText() + "', id_tecnico = " + idTecnico + " WHERE id_colmeia_manejo = " + txtId.getText();
             System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            int linhasAlteradas = comando.executeUpdate(sql);
+            conexao.close();
+            if (linhasAlteradas > 0) {
                 JOptionPane.showMessageDialog(null, "Registro atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum registro encontrado com esse ID");
@@ -425,14 +425,14 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o registro " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o registro " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
+                Connection conexao = Conexao.conectar();
+                Statement comando = conexao.createStatement();
                 String sql = "DELETE FROM colmeia_manejo WHERE id_colmeia_manejo = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                comando.executeUpdate(sql);
+                conexao.close();
                 JOptionPane.showMessageDialog(null, "Registro excluido!");
                 limpar();
                 listar();
@@ -466,22 +466,22 @@ public class TelaHistorico extends javax.swing.JFrame {
 
     public void carregarTabela(String sql) {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery(sql);
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
+            ResultSet resultado = comando.executeQuery(sql);
             modelo.setRowCount(0);
-            while (rs.next()) {
-                String obs = rs.getString("observacoes");
-                if (obs == null) {
-                    obs = "";
+            while (resultado.next()) {
+                String observacao = resultado.getString("observacoes");
+                if (observacao == null) {
+                    observacao = "";
                 }
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"),
-                    ItemCombo.montar(rs.getInt("id_colmeia"), rs.getString("codigo_identificador")),
-                    ItemCombo.montar(rs.getInt("id_manejo"), rs.getString("tipo_procedimento")),
-                    ItemCombo.montar(rs.getInt("id_tecnico"), rs.getString("tecnico")),
-                    ConversorData.paraTela(rs.getDate("data_realizacao")), obs});
+                modelo.addRow(new Object[]{resultado.getInt("id_colmeia_manejo"),
+                    ItemCombo.montar(resultado.getInt("id_colmeia"), resultado.getString("codigo_identificador")),
+                    ItemCombo.montar(resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento")),
+                    ItemCombo.montar(resultado.getInt("id_tecnico"), resultado.getString("tecnico")),
+                    ConversorData.paraTela(resultado.getDate("data_realizacao")), observacao});
             }
-            con.close();
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
         }

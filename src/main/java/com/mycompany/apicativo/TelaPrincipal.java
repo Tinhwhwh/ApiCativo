@@ -161,12 +161,12 @@ public class TelaPrincipal extends javax.swing.JFrame {
     public void gerarRelatorio() {
         StringBuilder relatorio = new StringBuilder();
         try {
-            Connection con = Conexao.conectar();
-            relatorio.append(montarTotalDeColmeias(con));
-            relatorio.append(montarColmeiasPorStatus(con));
-            relatorio.append(montarSetoresComMaisDeUmaColmeia(con));
-            relatorio.append(montarUltimoManejo(con));
-            con.close();
+            Connection conexao = Conexao.conectar();
+            relatorio.append(montarTotalDeColmeias(conexao));
+            relatorio.append(montarColmeiasPorStatus(conexao));
+            relatorio.append(montarSetoresComMaisDeUmaColmeia(conexao));
+            relatorio.append(montarUltimoManejo(conexao));
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao gerar relatorio: " + e.getMessage());
             return;
@@ -174,15 +174,15 @@ public class TelaPrincipal extends javax.swing.JFrame {
         mostrarRelatorio(relatorio.toString());
     }
 
-    private String montarTotalDeColmeias(Connection con) throws SQLException {
-        ResultSet resultado = con.createStatement().executeQuery("SELECT COUNT(*) FROM colmeia");
+    private String montarTotalDeColmeias(Connection conexao) throws SQLException {
+        ResultSet resultado = conexao.createStatement().executeQuery("SELECT COUNT(*) FROM colmeia");
         resultado.next();
         return "Total de colmeias: " + resultado.getInt(1) + "\n\n";
     }
 
-    private String montarColmeiasPorStatus(Connection con) throws SQLException {
+    private String montarColmeiasPorStatus(Connection conexao) throws SQLException {
         StringBuilder texto = new StringBuilder("Colmeias por status:\n");
-        ResultSet resultado = con.createStatement().executeQuery(
+        ResultSet resultado = conexao.createStatement().executeQuery(
                 "SELECT status, COUNT(*) AS quantidade FROM colmeia GROUP BY status ORDER BY quantidade DESC");
         while (resultado.next()) {
             texto.append("  ").append(resultado.getString("status"))
@@ -191,9 +191,9 @@ public class TelaPrincipal extends javax.swing.JFrame {
         return texto.append("\n").toString();
     }
 
-    private String montarSetoresComMaisDeUmaColmeia(Connection con) throws SQLException {
+    private String montarSetoresComMaisDeUmaColmeia(Connection conexao) throws SQLException {
         StringBuilder texto = new StringBuilder("Setores com mais de 1 colmeia:\n");
-        ResultSet resultado = con.createStatement().executeQuery(
+        ResultSet resultado = conexao.createStatement().executeQuery(
                 "SELECT l.nome_setor, COUNT(c.id_colmeia) AS quantidade FROM localizacao l "
                 + "JOIN colmeia c ON c.id_localizacao = l.id_localizacao "
                 + "GROUP BY l.nome_setor HAVING COUNT(c.id_colmeia) > 1");
@@ -209,8 +209,8 @@ public class TelaPrincipal extends javax.swing.JFrame {
         return texto.append("\n").toString();
     }
 
-    private String montarUltimoManejo(Connection con) throws SQLException {
-        ResultSet resultado = con.createStatement().executeQuery(
+    private String montarUltimoManejo(Connection conexao) throws SQLException {
+        ResultSet resultado = conexao.createStatement().executeQuery(
                 "SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC LIMIT 1");
         if (!resultado.next()) {
             return "Nenhum manejo registrado ainda\n";

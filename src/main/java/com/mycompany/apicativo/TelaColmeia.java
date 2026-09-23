@@ -30,7 +30,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         modelo = new DefaultTableModel() {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int linha, int coluna) {
                 return false;
             }
         };
@@ -310,14 +310,14 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     public void carregarLocalizacoes() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM localizacao ORDER BY id_localizacao");
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
+            ResultSet resultado = comando.executeQuery("SELECT * FROM localizacao ORDER BY id_localizacao");
             cmbLocal.removeAllItems();
-            while (rs.next()) {
-                cmbLocal.addItem(ItemCombo.montar(rs.getInt("id_localizacao"), rs.getString("nome_setor")));
+            while (resultado.next()) {
+                cmbLocal.addItem(ItemCombo.montar(resultado.getInt("id_localizacao"), resultado.getString("nome_setor")));
             }
-            con.close();
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao carregar localizacoes: " + e.getMessage());
         }
@@ -347,14 +347,14 @@ public class TelaColmeia extends javax.swing.JFrame {
         String data = ConversorData.paraBanco(txtData.getText());
         String idLocal = ItemCombo.idSelecionado(cmbLocal);
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "INSERT INTO colmeia (codigo_identificador, data_instalacao, status, tamanho_caixa, estilo_caixa, id_localizacao) VALUES ('"
                     + txtCodigo.getText() + "', '" + data + "', '" + cmbStatus.getSelectedItem() + "', '" + cmbTamanho.getSelectedItem() + "', '"
                     + cmbEstilo.getSelectedItem() + "', " + idLocal + ")";
             System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            comando.executeUpdate(sql);
+            conexao.close();
             JOptionPane.showMessageDialog(null, "Colmeia salva com sucesso!");
             limpar();
             listar();
@@ -391,16 +391,16 @@ public class TelaColmeia extends javax.swing.JFrame {
         String data = ConversorData.paraBanco(txtData.getText());
         String idLocal = ItemCombo.idSelecionado(cmbLocal);
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "UPDATE colmeia SET codigo_identificador = '" + txtCodigo.getText() + "', data_instalacao = '" + data
                     + "', status = '" + cmbStatus.getSelectedItem() + "', tamanho_caixa = '" + cmbTamanho.getSelectedItem()
                     + "', estilo_caixa = '" + cmbEstilo.getSelectedItem() + "', id_localizacao = " + idLocal
                     + " WHERE id_colmeia = " + txtId.getText();
             System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            int linhasAlteradas = comando.executeUpdate(sql);
+            conexao.close();
+            if (linhasAlteradas > 0) {
                 JOptionPane.showMessageDialog(null, "Colmeia atualizada!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada com esse ID");
@@ -421,14 +421,14 @@ public class TelaColmeia extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir a colmeia " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir a colmeia " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
+                Connection conexao = Conexao.conectar();
+                Statement comando = conexao.createStatement();
                 String sql = "DELETE FROM colmeia WHERE id_colmeia = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                comando.executeUpdate(sql);
+                conexao.close();
                 JOptionPane.showMessageDialog(null, "Colmeia excluida!");
                 limpar();
                 listar();
@@ -462,16 +462,16 @@ public class TelaColmeia extends javax.swing.JFrame {
     private int preencherTabela(String sql) {
         modelo.setRowCount(0);
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            while (rs.next()) {
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"),
-                    ConversorData.paraTela(rs.getDate("data_instalacao")), rs.getString("status"),
-                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"),
-                    ItemCombo.montar(rs.getInt("id_localizacao"), rs.getString("nome_setor"))});
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
+            ResultSet resultado = comando.executeQuery(sql);
+            while (resultado.next()) {
+                modelo.addRow(new Object[]{resultado.getInt("id_colmeia"), resultado.getString("codigo_identificador"),
+                    ConversorData.paraTela(resultado.getDate("data_instalacao")), resultado.getString("status"),
+                    resultado.getString("tamanho_caixa"), resultado.getString("estilo_caixa"),
+                    ItemCombo.montar(resultado.getInt("id_localizacao"), resultado.getString("nome_setor"))});
             }
-            con.close();
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao carregar colmeias: " + e.getMessage());
             return -1;

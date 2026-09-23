@@ -27,7 +27,7 @@ public class TelaManejo extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         modelo = new DefaultTableModel() {
             @Override
-            public boolean isCellEditable(int row, int column) {
+            public boolean isCellEditable(int linha, int coluna) {
                 return false;
             }
         };
@@ -248,12 +248,12 @@ public class TelaManejo extends javax.swing.JFrame {
             return;
         }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "INSERT INTO manejo (tipo_procedimento, descricao) VALUES ('" + txtTipo.getText() + "', '" + txtDescricao.getText() + "')";
             System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            comando.executeUpdate(sql);
+            conexao.close();
             JOptionPane.showMessageDialog(null, "Manejo salvo com sucesso!");
             limpar();
             listar();
@@ -280,13 +280,13 @@ public class TelaManejo extends javax.swing.JFrame {
             return;
         }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
             String sql = "UPDATE manejo SET tipo_procedimento = '" + txtTipo.getText() + "', descricao = '" + txtDescricao.getText() + "' WHERE id_manejo = " + txtId.getText();
             System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            int linhasAlteradas = comando.executeUpdate(sql);
+            conexao.close();
+            if (linhasAlteradas > 0) {
                 JOptionPane.showMessageDialog(null, "Manejo atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum manejo encontrado com esse ID");
@@ -307,14 +307,14 @@ public class TelaManejo extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o manejo " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o manejo " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
+                Connection conexao = Conexao.conectar();
+                Statement comando = conexao.createStatement();
                 String sql = "DELETE FROM manejo WHERE id_manejo = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                comando.executeUpdate(sql);
+                conexao.close();
                 JOptionPane.showMessageDialog(null, "Manejo excluido!");
                 limpar();
                 listar();
@@ -330,23 +330,23 @@ public class TelaManejo extends javax.swing.JFrame {
             return;
         }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM manejo WHERE tipo_procedimento ILIKE '%" + txtTipo.getText() + "%' ORDER BY id_manejo");
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
+            ResultSet resultado = comando.executeQuery("SELECT * FROM manejo WHERE tipo_procedimento ILIKE '%" + txtTipo.getText() + "%' ORDER BY id_manejo");
             modelo.setRowCount(0);
-            int cont = 0;
-            while (rs.next()) {
-                String desc = rs.getString("descricao");
-                if (desc == null) {
-                    desc = "";
+            int quantidadeEncontrada = 0;
+            while (resultado.next()) {
+                String descricao = resultado.getString("descricao");
+                if (descricao == null) {
+                    descricao = "";
                 }
-                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), desc});
-                cont++;
+                modelo.addRow(new Object[]{resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento"), descricao});
+                quantidadeEncontrada++;
             }
-            con.close();
-            if (cont == 0) {
+            conexao.close();
+            if (quantidadeEncontrada == 0) {
                 JOptionPane.showMessageDialog(null, "Nenhum manejo encontrado");
-            } else if (cont == 1) {
+            } else if (quantidadeEncontrada == 1) {
                 // se achou so um ja preenche os campos
                 txtId.setText(modelo.getValueAt(0, 0).toString());
                 txtTipo.setText(modelo.getValueAt(0, 1).toString());
@@ -359,18 +359,18 @@ public class TelaManejo extends javax.swing.JFrame {
 
     public void listar() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
+            Connection conexao = Conexao.conectar();
+            Statement comando = conexao.createStatement();
+            ResultSet resultado = comando.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
             modelo.setRowCount(0);
-            while (rs.next()) {
-                String desc = rs.getString("descricao");
-                if (desc == null) {
-                    desc = "";
+            while (resultado.next()) {
+                String descricao = resultado.getString("descricao");
+                if (descricao == null) {
+                    descricao = "";
                 }
-                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), desc});
+                modelo.addRow(new Object[]{resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento"), descricao});
             }
-            con.close();
+            conexao.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
         }

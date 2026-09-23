@@ -6,8 +6,9 @@ package com.mycompany.apicativo;
 
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.sql.Statement;
+import java.sql.SQLException;
 import javax.swing.JOptionPane;
+import javax.swing.JTextArea;
 
 /**
  *
@@ -157,57 +158,74 @@ public class TelaPrincipal extends javax.swing.JFrame {
         gerarRelatorio();
     }//GEN-LAST:event_btnRelatorioActionPerformed
 
-    // mostra um resumo geral das colmeias e do ultimo manejo
     public void gerarRelatorio() {
-        String s = "";
+        StringBuilder relatorio = new StringBuilder();
         try {
             Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-
-            // total
-            ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM colmeia");
-            if (rs.next()) {
-                s = s + "Total de colmeias: " + rs.getInt(1) + "\n\n";
-            }
-
-            // por status
-            s = s + "Colmeias por status:\n";
-            ResultSet rs2 = st.executeQuery("SELECT status, COUNT(*) AS qtd FROM colmeia GROUP BY status ORDER BY qtd DESC");
-            while (rs2.next()) {
-                s = s + "  " + rs2.getString("status") + ": " + rs2.getInt("qtd") + "\n";
-            }
-            s = s + "\n";
-
-            // setores com mais de 1 colmeia
-            s = s + "Setores com mais de 1 colmeia:\n";
-            ResultSet rs3 = st.executeQuery("SELECT l.nome_setor, COUNT(c.id_colmeia) AS qtd FROM localizacao l JOIN colmeia c ON c.id_localizacao = l.id_localizacao GROUP BY l.nome_setor HAVING COUNT(c.id_colmeia) > 1");
-            int x = 0;
-            while (rs3.next()) {
-                s = s + "  " + rs3.getString("nome_setor") + ": " + rs3.getInt("qtd") + " colmeias\n";
-                x++;
-            }
-            if (x == 0) {
-                s = s + "  nenhum\n";
-            }
-            s = s + "\n";
-
-            // ultimo manejo
-            ResultSet rs4 = st.executeQuery("SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC LIMIT 1");
-            if (rs4.next()) {
-                s = s + "Ultimo manejo realizado:\n";
-                s = s + "  " + ConversorData.paraTela(rs4.getDate("data_realizacao")) + " - " + rs4.getString("tipo_procedimento") + " na colmeia "
-                        + rs4.getString("codigo_identificador") + " (" + rs4.getString("nome_setor") + ") por " + rs4.getString("tecnico") + "\n";
-            } else {
-                s = s + "Nenhum manejo registrado ainda\n";
-            }
+            relatorio.append(montarTotalDeColmeias(con));
+            relatorio.append(montarColmeiasPorStatus(con));
+            relatorio.append(montarSetoresComMaisDeUmaColmeia(con));
+            relatorio.append(montarUltimoManejo(con));
             con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao gerar relatorio: " + e.getMessage());
             return;
         }
-        javax.swing.JTextArea area = new javax.swing.JTextArea(s);
-        area.setEditable(false);
-        JOptionPane.showMessageDialog(null, area, "Relatorio ApiCativo", JOptionPane.INFORMATION_MESSAGE);
+        mostrarRelatorio(relatorio.toString());
+    }
+
+    private String montarTotalDeColmeias(Connection con) throws SQLException {
+        ResultSet resultado = con.createStatement().executeQuery("SELECT COUNT(*) FROM colmeia");
+        resultado.next();
+        return "Total de colmeias: " + resultado.getInt(1) + "\n\n";
+    }
+
+    private String montarColmeiasPorStatus(Connection con) throws SQLException {
+        StringBuilder texto = new StringBuilder("Colmeias por status:\n");
+        ResultSet resultado = con.createStatement().executeQuery(
+                "SELECT status, COUNT(*) AS quantidade FROM colmeia GROUP BY status ORDER BY quantidade DESC");
+        while (resultado.next()) {
+            texto.append("  ").append(resultado.getString("status"))
+                    .append(": ").append(resultado.getInt("quantidade")).append("\n");
+        }
+        return texto.append("\n").toString();
+    }
+
+    private String montarSetoresComMaisDeUmaColmeia(Connection con) throws SQLException {
+        StringBuilder texto = new StringBuilder("Setores com mais de 1 colmeia:\n");
+        ResultSet resultado = con.createStatement().executeQuery(
+                "SELECT l.nome_setor, COUNT(c.id_colmeia) AS quantidade FROM localizacao l "
+                + "JOIN colmeia c ON c.id_localizacao = l.id_localizacao "
+                + "GROUP BY l.nome_setor HAVING COUNT(c.id_colmeia) > 1");
+        boolean encontrouSetor = false;
+        while (resultado.next()) {
+            texto.append("  ").append(resultado.getString("nome_setor"))
+                    .append(": ").append(resultado.getInt("quantidade")).append(" colmeias\n");
+            encontrouSetor = true;
+        }
+        if (!encontrouSetor) {
+            texto.append("  nenhum\n");
+        }
+        return texto.append("\n").toString();
+    }
+
+    private String montarUltimoManejo(Connection con) throws SQLException {
+        ResultSet resultado = con.createStatement().executeQuery(
+                "SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC LIMIT 1");
+        if (!resultado.next()) {
+            return "Nenhum manejo registrado ainda\n";
+        }
+        return "Ultimo manejo realizado:\n  "
+                + ConversorData.paraTela(resultado.getDate("data_realizacao")) + " - "
+                + resultado.getString("tipo_procedimento") + " na colmeia "
+                + resultado.getString("codigo_identificador") + " (" + resultado.getString("nome_setor") + ") por "
+                + resultado.getString("tecnico") + "\n";
+    }
+
+    private void mostrarRelatorio(String texto) {
+        JTextArea areaRelatorio = new JTextArea(texto);
+        areaRelatorio.setEditable(false);
+        JOptionPane.showMessageDialog(null, areaRelatorio, "Relatorio ApiCativo", JOptionPane.INFORMATION_MESSAGE);
     }
 
     /**

@@ -17,6 +17,9 @@ import org.apache.commons.validator.GenericValidator;
  */
 public class TelaColmeia extends javax.swing.JFrame {
 
+    private static final String SELECT_COLMEIAS_COM_SETOR = "SELECT c.*, l.nome_setor FROM colmeia c "
+            + "JOIN localizacao l ON l.id_localizacao = c.id_localizacao ";
+
     DefaultTableModel modelo;
 
     /**
@@ -437,65 +440,43 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     // busca pelo codigo, se nao tiver codigo busca pelo id
     public void buscar() {
-        String sql = "";
+        String filtro;
         if (!GenericValidator.isBlankOrNull(txtCodigo.getText())) {
-            sql = "SELECT * FROM colmeia WHERE codigo_identificador ILIKE '%" + txtCodigo.getText() + "%' ORDER BY id_colmeia";
+            filtro = "WHERE c.codigo_identificador ILIKE '%" + txtCodigo.getText() + "%' ORDER BY c.id_colmeia";
         } else if (!GenericValidator.isBlankOrNull(txtId.getText())) {
-            sql = "SELECT * FROM colmeia WHERE id_colmeia = " + txtId.getText();
+            filtro = "WHERE c.id_colmeia = " + txtId.getText();
         } else {
             JOptionPane.showMessageDialog(null, "Digite o nome/codigo pra buscar!");
             return;
         }
-        try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            modelo.setRowCount(0);
-            int cont = 0;
-            while (rs.next()) {
-                // pega o nome da localizacao
-                String local = "";
-                Statement st2 = con.createStatement();
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
-                if (rs2.next()) {
-                    local = ItemCombo.montar(rs2.getInt("id_localizacao"), rs2.getString("nome_setor"));
-                }
-                String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
-                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
-                cont++;
-            }
-            con.close();
-            if (cont == 0) {
-                JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada");
-            }
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
+        int colmeiasEncontradas = preencherTabela(SELECT_COLMEIAS_COM_SETOR + filtro);
+        if (colmeiasEncontradas == 0) {
+            JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada");
         }
     }
 
     public void listar() {
+        preencherTabela(SELECT_COLMEIAS_COM_SETOR + "ORDER BY c.id_colmeia");
+    }
+
+    private int preencherTabela(String sql) {
+        modelo.setRowCount(0);
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
-            modelo.setRowCount(0);
+            ResultSet rs = st.executeQuery(sql);
             while (rs.next()) {
-                // pega o nome da localizacao
-                String local = "";
-                Statement st2 = con.createStatement();
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
-                if (rs2.next()) {
-                    local = ItemCombo.montar(rs2.getInt("id_localizacao"), rs2.getString("nome_setor"));
-                }
-                String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
-                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
+                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"),
+                    ConversorData.paraTela(rs.getDate("data_instalacao")), rs.getString("status"),
+                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"),
+                    ItemCombo.montar(rs.getInt("id_localizacao"), rs.getString("nome_setor"))});
             }
             con.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erro ao carregar colmeias: " + e.getMessage());
+            return -1;
         }
+        return modelo.getRowCount();
     }
 
     public void limpar() {

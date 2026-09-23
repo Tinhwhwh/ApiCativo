@@ -26,7 +26,12 @@ public class TelaColmeia extends javax.swing.JFrame {
     public TelaColmeia() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Codigo");
         modelo.addColumn("Data instalacao");
@@ -74,6 +79,8 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Colmeias");
@@ -82,7 +89,7 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         jLabel4.setText("ID:");
 
-        jLabel5.setText("Codigo:");
+        jLabel5.setText("Nome/Código:");
 
         jLabel2.setText("Data instalacao (dd/mm/aaaa):");
 
@@ -316,7 +323,7 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     public void salvar() {
         if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
             return;
         }
         if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
@@ -373,7 +380,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             return;
         }
         if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
             return;
         }
         if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
@@ -455,7 +462,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         } else if (!GenericValidator.isBlankOrNull(txtId.getText())) {
             sql = "SELECT * FROM colmeia WHERE id_colmeia = " + txtId.getText();
         } else {
-            JOptionPane.showMessageDialog(null, "Digite o codigo ou o ID pra buscar!");
+            JOptionPane.showMessageDialog(null, "Digite o nome/codigo pra buscar!");
             return;
         }
         try {

@@ -26,7 +26,12 @@ public class TelaHistorico extends javax.swing.JFrame {
     public TelaHistorico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Colmeia");
         modelo.addColumn("Manejo");
@@ -63,7 +68,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         btnSalvar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
         btnExcluir = new javax.swing.JButton();
-        btnBuscar = new javax.swing.JButton();
+        btnDoTecnico = new javax.swing.JButton();
         btnDaColmeia = new javax.swing.JButton();
         btnListar = new javax.swing.JButton();
         btnLimpar = new javax.swing.JButton();
@@ -71,6 +76,8 @@ public class TelaHistorico extends javax.swing.JFrame {
         tabela = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        txtId.setEditable(false);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -117,10 +124,10 @@ public class TelaHistorico extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar ID");
-        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
+        btnDoTecnico.setText("Do tecnico");
+        btnDoTecnico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnBuscarActionPerformed(evt);
+                btnDoTecnicoActionPerformed(evt);
             }
         });
 
@@ -203,7 +210,7 @@ public class TelaHistorico extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnDoTecnico, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDaColmeia, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -250,7 +257,7 @@ public class TelaHistorico extends javax.swing.JFrame {
                     .addComponent(btnSalvar)
                     .addComponent(btnEditar)
                     .addComponent(btnExcluir)
-                    .addComponent(btnBuscar)
+                    .addComponent(btnDoTecnico)
                     .addComponent(btnDaColmeia)
                     .addComponent(btnListar)
                     .addComponent(btnLimpar)
@@ -276,9 +283,9 @@ public class TelaHistorico extends javax.swing.JFrame {
         excluir();
     }//GEN-LAST:event_btnExcluirActionPerformed
 
-    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        buscar();
-    }//GEN-LAST:event_btnBuscarActionPerformed
+    private void btnDoTecnicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDoTecnicoActionPerformed
+        listarDoTecnico();
+    }//GEN-LAST:event_btnDoTecnicoActionPerformed
 
     private void btnDaColmeiaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDaColmeiaActionPerformed
         listarDaColmeia();
@@ -454,21 +461,6 @@ public class TelaHistorico extends javax.swing.JFrame {
         }
     }
 
-    public void buscar() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
-            return;
-        }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
-            return;
-        }
-        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia_manejo = " + txtId.getText());
-        if (modelo.getRowCount() == 0) {
-            JOptionPane.showMessageDialog(null, "Registro nao encontrado");
-        }
-    }
-
     // mostra so os manejos da colmeia escolhida no combo
     public void listarDaColmeia() {
         if (cmbColmeia.getSelectedItem() == null) {
@@ -476,6 +468,15 @@ public class TelaHistorico extends javax.swing.JFrame {
         }
         String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
         carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
+    }
+
+    // mostra so os manejos feitos pelo tecnico escolhido no combo
+    public void listarDoTecnico() {
+        if (cmbTecnico.getSelectedItem() == null) {
+            return;
+        }
+        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
+        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_tecnico = " + idTecnico + " ORDER BY data_realizacao DESC");
     }
 
     public void listar() {
@@ -575,7 +576,7 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnBuscar;
+    private javax.swing.JButton btnDoTecnico;
     private javax.swing.JButton btnDaColmeia;
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnExcluir;

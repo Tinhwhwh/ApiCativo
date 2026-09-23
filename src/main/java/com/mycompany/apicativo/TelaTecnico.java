@@ -25,7 +25,12 @@ public class TelaTecnico extends javax.swing.JFrame {
     public TelaTecnico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Nome");
         modelo.addColumn("Descricao");
@@ -60,6 +65,8 @@ public class TelaTecnico extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         btnSalvar.setText("Salvar");
         btnSalvar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -83,7 +90,7 @@ public class TelaTecnico extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar ID");
+        btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -319,27 +326,33 @@ public class TelaTecnico extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
-            return;
-        }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
+            JOptionPane.showMessageDialog(null, "Digite o nome do tecnico pra buscar!");
             return;
         }
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM tecnico WHERE id_tecnico = " + txtId.getText());
+            ResultSet rs = st.executeQuery("SELECT * FROM tecnico WHERE nome ILIKE '%" + txtNome.getText() + "%' ORDER BY id_tecnico");
             modelo.setRowCount(0);
-            if (rs.next()) {
-                txtNome.setText(rs.getString("nome"));
-                txtDescricao.setText(rs.getString("descricao_tecnico"));
-                modelo.addRow(new Object[]{rs.getInt("id_tecnico"), rs.getString("nome"), rs.getString("descricao_tecnico")});
-            } else {
-                JOptionPane.showMessageDialog(null, "Tecnico nao encontrado");
+            int cont = 0;
+            while (rs.next()) {
+                String desc = rs.getString("descricao_tecnico");
+                if (desc == null) {
+                    desc = "";
+                }
+                modelo.addRow(new Object[]{rs.getInt("id_tecnico"), rs.getString("nome"), desc});
+                cont++;
             }
             con.close();
+            if (cont == 0) {
+                JOptionPane.showMessageDialog(null, "Nenhum tecnico encontrado");
+            } else if (cont == 1) {
+                // se achou so um ja preenche os campos
+                txtId.setText(modelo.getValueAt(0, 0).toString());
+                txtNome.setText(modelo.getValueAt(0, 1).toString());
+                txtDescricao.setText(modelo.getValueAt(0, 2).toString());
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
         }

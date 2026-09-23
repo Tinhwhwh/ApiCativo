@@ -25,7 +25,12 @@ public class TelaManejo extends javax.swing.JFrame {
     public TelaManejo() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         modelo.addColumn("ID");
         modelo.addColumn("Tipo procedimento");
         modelo.addColumn("Descricao");
@@ -59,6 +64,8 @@ public class TelaManejo extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+
+        txtId.setEditable(false);
 
         jLabel3.setText("Tipo:");
 
@@ -103,7 +110,7 @@ public class TelaManejo extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar ID");
+        btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -318,27 +325,33 @@ public class TelaManejo extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
-            return;
-        }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+        if (GenericValidator.isBlankOrNull(txtTipo.getText())) {
+            JOptionPane.showMessageDialog(null, "Digite o tipo do procedimento pra buscar!");
             return;
         }
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM manejo WHERE id_manejo = " + txtId.getText());
+            ResultSet rs = st.executeQuery("SELECT * FROM manejo WHERE tipo_procedimento ILIKE '%" + txtTipo.getText() + "%' ORDER BY id_manejo");
             modelo.setRowCount(0);
-            if (rs.next()) {
-                txtTipo.setText(rs.getString("tipo_procedimento"));
-                txtDescricao.setText(rs.getString("descricao"));
-                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), rs.getString("descricao")});
-            } else {
-                JOptionPane.showMessageDialog(null, "Manejo nao encontrado");
+            int cont = 0;
+            while (rs.next()) {
+                String desc = rs.getString("descricao");
+                if (desc == null) {
+                    desc = "";
+                }
+                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), desc});
+                cont++;
             }
             con.close();
+            if (cont == 0) {
+                JOptionPane.showMessageDialog(null, "Nenhum manejo encontrado");
+            } else if (cont == 1) {
+                // se achou so um ja preenche os campos
+                txtId.setText(modelo.getValueAt(0, 0).toString());
+                txtTipo.setText(modelo.getValueAt(0, 1).toString());
+                txtDescricao.setText(modelo.getValueAt(0, 2).toString());
+            }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
         }

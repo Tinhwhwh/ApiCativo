@@ -448,7 +448,7 @@ public class TelaHistorico extends javax.swing.JFrame {
             return;
         }
         String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
-        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
+        carregarTabela("SELECT * FROM vw_historico_completo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
     }
 
     // mostra so os manejos feitos pelo tecnico escolhido no combo
@@ -457,11 +457,11 @@ public class TelaHistorico extends javax.swing.JFrame {
             return;
         }
         String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
-        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_tecnico = " + idTecnico + " ORDER BY data_realizacao DESC");
+        carregarTabela("SELECT * FROM vw_historico_completo WHERE id_tecnico = " + idTecnico + " ORDER BY data_realizacao DESC");
     }
 
     public void listar() {
-        carregarTabela("SELECT * FROM colmeia_manejo ORDER BY data_realizacao DESC");
+        carregarTabela("SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC");
     }
 
     public void carregarTabela(String sql) {
@@ -471,33 +471,15 @@ public class TelaHistorico extends javax.swing.JFrame {
             ResultSet rs = st.executeQuery(sql);
             modelo.setRowCount(0);
             while (rs.next()) {
-                // busca o nome de cada coisa
-                String colmeia = "";
-                Statement st2 = con.createStatement();
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM colmeia WHERE id_colmeia = " + rs.getInt("id_colmeia"));
-                if (rs2.next()) {
-                    colmeia = ItemCombo.montar(rs2.getInt("id_colmeia"), rs2.getString("codigo_identificador"));
-                }
-
-                String manejo = "";
-                Statement st3 = con.createStatement();
-                ResultSet rs3 = st3.executeQuery("SELECT * FROM manejo WHERE id_manejo = " + rs.getInt("id_manejo"));
-                if (rs3.next()) {
-                    manejo = ItemCombo.montar(rs3.getInt("id_manejo"), rs3.getString("tipo_procedimento"));
-                }
-
-                String tecnico = "";
-                Statement st4 = con.createStatement();
-                ResultSet rs4 = st4.executeQuery("SELECT * FROM tecnico WHERE id_tecnico = " + rs.getInt("id_tecnico"));
-                if (rs4.next()) {
-                    tecnico = ItemCombo.montar(rs4.getInt("id_tecnico"), rs4.getString("nome"));
-                }
-
                 String obs = rs.getString("observacoes");
                 if (obs == null) {
                     obs = "";
                 }
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"), colmeia, manejo, tecnico, ConversorData.paraTela(rs.getDate("data_realizacao")), obs});
+                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"),
+                    ItemCombo.montar(rs.getInt("id_colmeia"), rs.getString("codigo_identificador")),
+                    ItemCombo.montar(rs.getInt("id_manejo"), rs.getString("tipo_procedimento")),
+                    ItemCombo.montar(rs.getInt("id_tecnico"), rs.getString("tecnico")),
+                    ConversorData.paraTela(rs.getDate("data_realizacao")), obs});
             }
             con.close();
         } catch (Exception e) {

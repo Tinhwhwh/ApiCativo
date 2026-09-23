@@ -28,12 +28,7 @@ public class TelaColmeia extends javax.swing.JFrame {
     public TelaColmeia() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int linha, int coluna) {
-                return false;
-            }
-        };
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Codigo");
         modelo.addColumn("Data instalacao");

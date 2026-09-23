@@ -25,12 +25,7 @@ public class TelaManejo extends javax.swing.JFrame {
     public TelaManejo() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int linha, int coluna) {
-                return false;
-            }
-        };
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Tipo procedimento");
         modelo.addColumn("Descricao");

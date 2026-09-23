@@ -25,12 +25,7 @@ public class TelaTecnico extends javax.swing.JFrame {
     public TelaTecnico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel() {
-            @Override
-            public boolean isCellEditable(int linha, int coluna) {
-                return false;
-            }
-        };
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Nome");
         modelo.addColumn("Descricao");

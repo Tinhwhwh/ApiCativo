@@ -1,7 +1,6 @@
 package com.mycompany.apicativo;
 
 import com.formdev.flatlaf.FlatDarkLaf;
-import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 
 public class Apicativo {
@@ -10,7 +9,6 @@ public class Apicativo {
         FlatDarkLaf.setup();
 
         SwingUtilities.invokeLater(() -> {
-            //JOptionPane.showMessageDialog(null, "Sistema ApiCativo", "ApiCativo - Controle Apícola", JOptionPane.INFORMATION_MESSAGE);
             TelaPrincipal tela = new TelaPrincipal();
             tela.setVisible(true);
         });

@@ -59,7 +59,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnExcluir" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="btnBuscar" min="-2" pref="105" max="-2" attributes="0"/>
+                      <Component id="btnDoTecnico" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnDaColmeia" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -107,7 +107,7 @@
                   <Component id="btnSalvar" alignment="3" attributes="0"/>
                   <Component id="btnEditar" alignment="3" attributes="0"/>
                   <Component id="btnExcluir" alignment="3" attributes="0"/>
-                  <Component id="btnBuscar" alignment="3" attributes="0"/>
+                  <Component id="btnDoTecnico" alignment="3" attributes="0"/>
                   <Component id="btnDaColmeia" alignment="3" attributes="0"/>
                   <Component id="btnListar" alignment="3" attributes="0"/>
                   <Component id="btnLimpar" alignment="3" attributes="0"/>
@@ -231,12 +231,12 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnExcluirActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="btnBuscar">
+    <Component class="javax.swing.JButton" name="btnDoTecnico">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Buscar ID"/>
+        <Property name="text" type="java.lang.String" value="Do tecnico"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBuscarActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDoTecnicoActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnDaColmeia">

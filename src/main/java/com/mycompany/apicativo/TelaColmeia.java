@@ -89,7 +89,7 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         jLabel4.setText("ID:");
 
-        jLabel5.setText("Codigo:");
+        jLabel5.setText("Nome/Código:");
 
         jLabel2.setText("Data instalacao (dd/mm/aaaa):");
 
@@ -323,7 +323,7 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     public void salvar() {
         if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
             return;
         }
         if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
@@ -380,7 +380,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             return;
         }
         if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
             return;
         }
         if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
@@ -462,7 +462,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         } else if (!GenericValidator.isBlankOrNull(txtId.getText())) {
             sql = "SELECT * FROM colmeia WHERE id_colmeia = " + txtId.getText();
         } else {
-            JOptionPane.showMessageDialog(null, "Digite o codigo ou o ID pra buscar!");
+            JOptionPane.showMessageDialog(null, "Digite o nome/codigo pra buscar!");
             return;
         }
         try {

@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -336,8 +337,12 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Precisa ter colmeia, manejo e tecnico cadastrados!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
+            return;
+        }
+        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
         String data = "";
@@ -348,6 +353,10 @@ public class TelaHistorico extends javax.swing.JFrame {
             data = f2.format(f1.parse(txtData.getText()));
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
+            return;
+        }
+        if (txtObs.getText().length() > 255) {
+            JOptionPane.showMessageDialog(null, "Observacao muito grande! Maximo 255 caracteres");
             return;
         }
         String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
@@ -370,12 +379,20 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um registro na tabela ou digite o ID!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
+            return;
+        }
+        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
         String data = "";
@@ -412,8 +429,12 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um registro na tabela ou digite o ID!");
+            return;
+        }
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
         int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o registro " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
@@ -434,8 +455,12 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
+            return;
+        }
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
         carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia_manejo = " + txtId.getText());

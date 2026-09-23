@@ -39,6 +39,16 @@ CREATE TABLE colmeia_manejo (
     id_tecnico INT NOT NULL REFERENCES tecnico(id_tecnico)
 );
 
+-- view com o historico completo, com os nomes no lugar dos ids
+CREATE VIEW vw_historico_completo AS
+SELECT cm.id_colmeia_manejo, c.id_colmeia, c.codigo_identificador, m.id_manejo, m.tipo_procedimento,
+       t.id_tecnico, t.nome AS tecnico, l.nome_setor, cm.data_realizacao, cm.observacoes
+FROM colmeia_manejo cm
+JOIN colmeia c ON c.id_colmeia = cm.id_colmeia
+JOIN manejo m ON m.id_manejo = cm.id_manejo
+JOIN tecnico t ON t.id_tecnico = cm.id_tecnico
+JOIN localizacao l ON l.id_localizacao = c.id_localizacao;
+
 -- alguns dados pra testar
 INSERT INTO localizacao (nome_setor, descricao_localizacao) VALUES ('Setor A', 'Perto do eucaliptal');
 INSERT INTO localizacao (nome_setor, descricao_localizacao) VALUES ('Setor B', 'Beira do rio');

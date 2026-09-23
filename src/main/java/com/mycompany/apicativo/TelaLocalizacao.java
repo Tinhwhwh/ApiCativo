@@ -259,7 +259,6 @@ public class TelaLocalizacao extends javax.swing.JFrame {
             Connection conexao = Conexao.conectar();
             Statement comando = conexao.createStatement();
             String sql = "INSERT INTO localizacao (nome_setor, descricao_localizacao) VALUES ('" + txtNome.getText() + "', '" + txtDescricao.getText() + "')";
-            System.out.println(sql);
             comando.executeUpdate(sql);
             conexao.close();
             JOptionPane.showMessageDialog(null, "Setor salvo com sucesso!");
@@ -291,7 +290,6 @@ public class TelaLocalizacao extends javax.swing.JFrame {
             Connection conexao = Conexao.conectar();
             Statement comando = conexao.createStatement();
             String sql = "UPDATE localizacao SET nome_setor = '" + txtNome.getText() + "', descricao_localizacao = '" + txtDescricao.getText() + "' WHERE id_localizacao = " + txtId.getText();
-            System.out.println(sql);
             int linhasAlteradas = comando.executeUpdate(sql);
             conexao.close();
             if (linhasAlteradas > 0) {

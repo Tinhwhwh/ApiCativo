@@ -286,7 +286,7 @@ public class TelaColmeia extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExcluirActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        buscar();
+        buscarPorCodigoOuId();
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnListarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarActionPerformed
@@ -352,7 +352,6 @@ public class TelaColmeia extends javax.swing.JFrame {
             String sql = "INSERT INTO colmeia (codigo_identificador, data_instalacao, status, tamanho_caixa, estilo_caixa, id_localizacao) VALUES ('"
                     + txtCodigo.getText() + "', '" + data + "', '" + cmbStatus.getSelectedItem() + "', '" + cmbTamanho.getSelectedItem() + "', '"
                     + cmbEstilo.getSelectedItem() + "', " + idLocal + ")";
-            System.out.println(sql);
             comando.executeUpdate(sql);
             conexao.close();
             JOptionPane.showMessageDialog(null, "Colmeia salva com sucesso!");
@@ -397,7 +396,6 @@ public class TelaColmeia extends javax.swing.JFrame {
                     + "', status = '" + cmbStatus.getSelectedItem() + "', tamanho_caixa = '" + cmbTamanho.getSelectedItem()
                     + "', estilo_caixa = '" + cmbEstilo.getSelectedItem() + "', id_localizacao = " + idLocal
                     + " WHERE id_colmeia = " + txtId.getText();
-            System.out.println(sql);
             int linhasAlteradas = comando.executeUpdate(sql);
             conexao.close();
             if (linhasAlteradas > 0) {
@@ -438,8 +436,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         }
     }
 
-    // busca pelo codigo, se nao tiver codigo busca pelo id
-    public void buscar() {
+    public void buscarPorCodigoOuId() {
         String filtro;
         if (!GenericValidator.isBlankOrNull(txtCodigo.getText())) {
             filtro = "WHERE c.codigo_identificador ILIKE '%" + txtCodigo.getText() + "%' ORDER BY c.id_colmeia";

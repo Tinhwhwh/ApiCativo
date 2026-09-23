@@ -252,7 +252,6 @@ public class TelaTecnico extends javax.swing.JFrame {
             Connection conexao = Conexao.conectar();
             Statement comando = conexao.createStatement();
             String sql = "INSERT INTO tecnico (nome, descricao_tecnico) VALUES ('" + txtNome.getText() + "', '" + txtDescricao.getText() + "')";
-            System.out.println(sql);
             comando.executeUpdate(sql);
             conexao.close();
             JOptionPane.showMessageDialog(null, "Tecnico salvo com sucesso!");
@@ -284,7 +283,6 @@ public class TelaTecnico extends javax.swing.JFrame {
             Connection conexao = Conexao.conectar();
             Statement comando = conexao.createStatement();
             String sql = "UPDATE tecnico SET nome = '" + txtNome.getText() + "', descricao_tecnico = '" + txtDescricao.getText() + "' WHERE id_tecnico = " + txtId.getText();
-            System.out.println(sql);
             int linhasAlteradas = comando.executeUpdate(sql);
             conexao.close();
             if (linhasAlteradas > 0) {

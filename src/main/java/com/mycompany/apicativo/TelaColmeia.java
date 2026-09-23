@@ -312,7 +312,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             ResultSet rs = st.executeQuery("SELECT * FROM localizacao ORDER BY id_localizacao");
             cmbLocal.removeAllItems();
             while (rs.next()) {
-                cmbLocal.addItem(rs.getInt("id_localizacao") + " - " + rs.getString("nome_setor"));
+                cmbLocal.addItem(ItemCombo.montar(rs.getInt("id_localizacao"), rs.getString("nome_setor")));
             }
             con.close();
         } catch (Exception e) {
@@ -342,7 +342,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             return;
         }
         String data = ConversorData.paraBanco(txtData.getText());
-        String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
+        String idLocal = ItemCombo.idSelecionado(cmbLocal);
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
@@ -386,7 +386,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             return;
         }
         String data = ConversorData.paraBanco(txtData.getText());
-        String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
+        String idLocal = ItemCombo.idSelecionado(cmbLocal);
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
@@ -458,7 +458,7 @@ public class TelaColmeia extends javax.swing.JFrame {
                 Statement st2 = con.createStatement();
                 ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
                 if (rs2.next()) {
-                    local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
+                    local = ItemCombo.montar(rs2.getInt("id_localizacao"), rs2.getString("nome_setor"));
                 }
                 String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
                 modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
@@ -486,7 +486,7 @@ public class TelaColmeia extends javax.swing.JFrame {
                 Statement st2 = con.createStatement();
                 ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
                 if (rs2.next()) {
-                    local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
+                    local = ItemCombo.montar(rs2.getInt("id_localizacao"), rs2.getString("nome_setor"));
                 }
                 String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
                 modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),

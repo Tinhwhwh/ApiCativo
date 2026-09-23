@@ -317,19 +317,19 @@ public class TelaHistorico extends javax.swing.JFrame {
             ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
             cmbColmeia.removeAllItems();
             while (rs.next()) {
-                cmbColmeia.addItem(rs.getInt("id_colmeia") + " - " + rs.getString("codigo_identificador"));
+                cmbColmeia.addItem(ItemCombo.montar(rs.getInt("id_colmeia"), rs.getString("codigo_identificador")));
             }
 
             rs = st.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
             cmbManejo.removeAllItems();
             while (rs.next()) {
-                cmbManejo.addItem(rs.getInt("id_manejo") + " - " + rs.getString("tipo_procedimento"));
+                cmbManejo.addItem(ItemCombo.montar(rs.getInt("id_manejo"), rs.getString("tipo_procedimento")));
             }
 
             rs = st.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
             cmbTecnico.removeAllItems();
             while (rs.next()) {
-                cmbTecnico.addItem(rs.getInt("id_tecnico") + " - " + rs.getString("nome"));
+                cmbTecnico.addItem(ItemCombo.montar(rs.getInt("id_tecnico"), rs.getString("nome")));
             }
 
             con.close();
@@ -356,9 +356,9 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Observacao muito grande! Maximo 255 caracteres");
             return;
         }
-        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
-        String idManejo = cmbManejo.getSelectedItem().toString().split(" - ")[0];
-        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
+        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
+        String idManejo = ItemCombo.idSelecionado(cmbManejo);
+        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
@@ -393,9 +393,9 @@ public class TelaHistorico extends javax.swing.JFrame {
             return;
         }
         String data = ConversorData.paraBanco(txtData.getText());
-        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
-        String idManejo = cmbManejo.getSelectedItem().toString().split(" - ")[0];
-        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
+        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
+        String idManejo = ItemCombo.idSelecionado(cmbManejo);
+        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
         try {
             Connection con = Conexao.conectar();
             Statement st = con.createStatement();
@@ -447,7 +447,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         if (cmbColmeia.getSelectedItem() == null) {
             return;
         }
-        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
+        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
         carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
     }
 
@@ -456,7 +456,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         if (cmbTecnico.getSelectedItem() == null) {
             return;
         }
-        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
+        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
         carregarTabela("SELECT * FROM colmeia_manejo WHERE id_tecnico = " + idTecnico + " ORDER BY data_realizacao DESC");
     }
 
@@ -476,21 +476,21 @@ public class TelaHistorico extends javax.swing.JFrame {
                 Statement st2 = con.createStatement();
                 ResultSet rs2 = st2.executeQuery("SELECT * FROM colmeia WHERE id_colmeia = " + rs.getInt("id_colmeia"));
                 if (rs2.next()) {
-                    colmeia = rs2.getInt("id_colmeia") + " - " + rs2.getString("codigo_identificador");
+                    colmeia = ItemCombo.montar(rs2.getInt("id_colmeia"), rs2.getString("codigo_identificador"));
                 }
 
                 String manejo = "";
                 Statement st3 = con.createStatement();
                 ResultSet rs3 = st3.executeQuery("SELECT * FROM manejo WHERE id_manejo = " + rs.getInt("id_manejo"));
                 if (rs3.next()) {
-                    manejo = rs3.getInt("id_manejo") + " - " + rs3.getString("tipo_procedimento");
+                    manejo = ItemCombo.montar(rs3.getInt("id_manejo"), rs3.getString("tipo_procedimento"));
                 }
 
                 String tecnico = "";
                 Statement st4 = con.createStatement();
                 ResultSet rs4 = st4.executeQuery("SELECT * FROM tecnico WHERE id_tecnico = " + rs.getInt("id_tecnico"));
                 if (rs4.next()) {
-                    tecnico = rs4.getInt("id_tecnico") + " - " + rs4.getString("nome");
+                    tecnico = ItemCombo.montar(rs4.getInt("id_tecnico"), rs4.getString("nome"));
                 }
 
                 String obs = rs.getString("observacoes");

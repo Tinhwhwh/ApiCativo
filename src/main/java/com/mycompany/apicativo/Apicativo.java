@@ -10,12 +10,9 @@ public class Apicativo {
         FlatDarkLaf.setup();
 
         SwingUtilities.invokeLater(() -> {
-            JOptionPane.showMessageDialog(
-                null, 
-                "Sistema ApiCativo", 
-                "ApiCativo - Controle Apícola", 
-                JOptionPane.INFORMATION_MESSAGE
-            );
+            //JOptionPane.showMessageDialog(null, "Sistema ApiCativo", "ApiCativo - Controle Apícola", JOptionPane.INFORMATION_MESSAGE);
+            TelaPrincipal tela = new TelaPrincipal();
+            tela.setVisible(true);
         });
     }
 }

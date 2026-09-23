@@ -7,7 +7,6 @@ package com.mycompany.apicativo;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.validator.GenericValidator;
@@ -334,7 +333,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
             return;
         }
-        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+        if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
@@ -342,16 +341,7 @@ public class TelaColmeia extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Cadastre uma localizacao antes!");
             return;
         }
-        String data = "";
-        try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
-            return;
-        }
+        String data = ConversorData.paraBanco(txtData.getText());
         String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
         try {
             Connection con = Conexao.conectar();
@@ -391,20 +381,11 @@ public class TelaColmeia extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
             return;
         }
-        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+        if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String data = "";
-        try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
-            return;
-        }
+        String data = ConversorData.paraBanco(txtData.getText());
         String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
         try {
             Connection con = Conexao.conectar();
@@ -470,7 +451,6 @@ public class TelaColmeia extends javax.swing.JFrame {
             Statement st = con.createStatement();
             ResultSet rs = st.executeQuery(sql);
             modelo.setRowCount(0);
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
             int cont = 0;
             while (rs.next()) {
                 // pega o nome da localizacao
@@ -480,10 +460,7 @@ public class TelaColmeia extends javax.swing.JFrame {
                 if (rs2.next()) {
                     local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
                 }
-                String data = "";
-                if (rs.getDate("data_instalacao") != null) {
-                    data = f.format(rs.getDate("data_instalacao"));
-                }
+                String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
                 modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
                     rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
                 cont++;
@@ -503,7 +480,6 @@ public class TelaColmeia extends javax.swing.JFrame {
             Statement st = con.createStatement();
             ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
             modelo.setRowCount(0);
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
             while (rs.next()) {
                 // pega o nome da localizacao
                 String local = "";
@@ -512,10 +488,7 @@ public class TelaColmeia extends javax.swing.JFrame {
                 if (rs2.next()) {
                     local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
                 }
-                String data = "";
-                if (rs.getDate("data_instalacao") != null) {
-                    data = f.format(rs.getDate("data_instalacao"));
-                }
+                String data = ConversorData.paraTela(rs.getDate("data_instalacao"));
                 modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
                     rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
             }

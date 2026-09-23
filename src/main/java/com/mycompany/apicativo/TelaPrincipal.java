@@ -7,7 +7,6 @@ package com.mycompany.apicativo;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 
 /**
@@ -195,9 +194,8 @@ public class TelaPrincipal extends javax.swing.JFrame {
             // ultimo manejo
             ResultSet rs4 = st.executeQuery("SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC LIMIT 1");
             if (rs4.next()) {
-                SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
                 s = s + "Ultimo manejo realizado:\n";
-                s = s + "  " + f.format(rs4.getDate("data_realizacao")) + " - " + rs4.getString("tipo_procedimento") + " na colmeia "
+                s = s + "  " + ConversorData.paraTela(rs4.getDate("data_realizacao")) + " - " + rs4.getString("tipo_procedimento") + " na colmeia "
                         + rs4.getString("codigo_identificador") + " (" + rs4.getString("nome_setor") + ") por " + rs4.getString("tecnico") + "\n";
             } else {
                 s = s + "Nenhum manejo registrado ainda\n";

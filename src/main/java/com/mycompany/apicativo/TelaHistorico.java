@@ -7,7 +7,6 @@ package com.mycompany.apicativo;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
 import org.apache.commons.validator.GenericValidator;
@@ -348,20 +347,11 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
             return;
         }
-        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+        if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String data = "";
-        try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
-            return;
-        }
+        String data = ConversorData.paraBanco(txtData.getText());
         if (txtObs.getText().length() > 255) {
             JOptionPane.showMessageDialog(null, "Observacao muito grande! Maximo 255 caracteres");
             return;
@@ -398,20 +388,11 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
             return;
         }
-        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+        if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String data = "";
-        try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
-            return;
-        }
+        String data = ConversorData.paraBanco(txtData.getText());
         String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
         String idManejo = cmbManejo.getSelectedItem().toString().split(" - ")[0];
         String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
@@ -489,7 +470,6 @@ public class TelaHistorico extends javax.swing.JFrame {
             Statement st = con.createStatement();
             ResultSet rs = st.executeQuery(sql);
             modelo.setRowCount(0);
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
             while (rs.next()) {
                 // busca o nome de cada coisa
                 String colmeia = "";
@@ -517,7 +497,7 @@ public class TelaHistorico extends javax.swing.JFrame {
                 if (obs == null) {
                     obs = "";
                 }
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"), colmeia, manejo, tecnico, f.format(rs.getDate("data_realizacao")), obs});
+                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"), colmeia, manejo, tecnico, ConversorData.paraTela(rs.getDate("data_realizacao")), obs});
             }
             con.close();
         } catch (Exception e) {

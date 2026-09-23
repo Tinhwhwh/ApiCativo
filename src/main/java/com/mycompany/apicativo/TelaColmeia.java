@@ -10,6 +10,7 @@ import java.sql.Statement;
 import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -314,12 +315,20 @@ public class TelaColmeia extends javax.swing.JFrame {
     }
 
     public void salvar() {
-        if (txtCodigo.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 50 caracteres");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
+            return;
+        }
+        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
         if (cmbLocal.getSelectedItem() == null) {
@@ -355,16 +364,28 @@ public class TelaColmeia extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione uma colmeia na tabela ou digite o ID!");
             return;
         }
-        if (txtCodigo.getText().equals("")) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 50 caracteres");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
+            return;
+        }
+        if (!GenericValidator.isDate(txtData.getText(), "dd/MM/yyyy", true)) {
+            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
         String data = "";
@@ -401,8 +422,12 @@ public class TelaColmeia extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione uma colmeia na tabela ou digite o ID!");
+            return;
+        }
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
         int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir a colmeia " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
@@ -425,9 +450,9 @@ public class TelaColmeia extends javax.swing.JFrame {
     // busca pelo codigo, se nao tiver codigo busca pelo id
     public void buscar() {
         String sql = "";
-        if (!txtCodigo.getText().equals("")) {
+        if (!GenericValidator.isBlankOrNull(txtCodigo.getText())) {
             sql = "SELECT * FROM colmeia WHERE codigo_identificador ILIKE '%" + txtCodigo.getText() + "%' ORDER BY id_colmeia";
-        } else if (!txtId.getText().equals("")) {
+        } else if (!GenericValidator.isBlankOrNull(txtId.getText())) {
             sql = "SELECT * FROM colmeia WHERE id_colmeia = " + txtId.getText();
         } else {
             JOptionPane.showMessageDialog(null, "Digite o codigo ou o ID pra buscar!");

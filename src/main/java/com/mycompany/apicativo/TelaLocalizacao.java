@@ -9,6 +9,7 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -239,8 +240,12 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
-        if (txtNome.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome do setor!");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
             return;
         }
         try {
@@ -259,12 +264,20 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um setor na tabela ou digite o ID!");
             return;
         }
-        if (txtNome.getText().equals("")) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome do setor!");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
             return;
         }
         try {
@@ -287,8 +300,12 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um setor na tabela ou digite o ID!");
+            return;
+        }
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
         int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o setor " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
@@ -309,8 +326,12 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
+            return;
+        }
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
         try {

@@ -4,6 +4,12 @@
  */
 package com.mycompany.apicativo;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.text.SimpleDateFormat;
+import javax.swing.JOptionPane;
+
 /**
  *
  * @author carle
@@ -33,6 +39,7 @@ public class TelaPrincipal extends javax.swing.JFrame {
         btnTecnicos = new javax.swing.JButton();
         btnLocalizacoes = new javax.swing.JButton();
         btnHistorico = new javax.swing.JButton();
+        btnRelatorio = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -77,6 +84,13 @@ public class TelaPrincipal extends javax.swing.JFrame {
             }
         });
 
+        btnRelatorio.setText("Relatorio");
+        btnRelatorio.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                btnRelatorioActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -93,7 +107,8 @@ public class TelaPrincipal extends javax.swing.JFrame {
                         .addComponent(btnManejos))
                     .addComponent(btnColmeias, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(btnHistorico, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(btnLocalizacoes, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnLocalizacoes, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnRelatorio, javax.swing.GroupLayout.PREFERRED_SIZE, 166, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(364, 364, 364))
         );
         layout.setVerticalGroup(
@@ -111,7 +126,9 @@ public class TelaPrincipal extends javax.swing.JFrame {
                 .addComponent(btnTecnicos, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
                 .addComponent(btnManejos, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(189, Short.MAX_VALUE))
+                .addGap(18, 18, 18)
+                .addComponent(btnRelatorio, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(131, Short.MAX_VALUE))
         );
 
         pack();
@@ -136,6 +153,64 @@ public class TelaPrincipal extends javax.swing.JFrame {
     private void btnManejosActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnManejosActionPerformed
         new TelaManejo().setVisible(true);
     }//GEN-LAST:event_btnManejosActionPerformed
+
+    private void btnRelatorioActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnRelatorioActionPerformed
+        gerarRelatorio();
+    }//GEN-LAST:event_btnRelatorioActionPerformed
+
+    // mostra um resumo geral das colmeias e do ultimo manejo
+    public void gerarRelatorio() {
+        String s = "";
+        try {
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
+
+            // total
+            ResultSet rs = st.executeQuery("SELECT COUNT(*) FROM colmeia");
+            if (rs.next()) {
+                s = s + "Total de colmeias: " + rs.getInt(1) + "\n\n";
+            }
+
+            // por status
+            s = s + "Colmeias por status:\n";
+            ResultSet rs2 = st.executeQuery("SELECT status, COUNT(*) AS qtd FROM colmeia GROUP BY status ORDER BY qtd DESC");
+            while (rs2.next()) {
+                s = s + "  " + rs2.getString("status") + ": " + rs2.getInt("qtd") + "\n";
+            }
+            s = s + "\n";
+
+            // setores com mais de 1 colmeia
+            s = s + "Setores com mais de 1 colmeia:\n";
+            ResultSet rs3 = st.executeQuery("SELECT l.nome_setor, COUNT(c.id_colmeia) AS qtd FROM localizacao l JOIN colmeia c ON c.id_localizacao = l.id_localizacao GROUP BY l.nome_setor HAVING COUNT(c.id_colmeia) > 1");
+            int x = 0;
+            while (rs3.next()) {
+                s = s + "  " + rs3.getString("nome_setor") + ": " + rs3.getInt("qtd") + " colmeias\n";
+                x++;
+            }
+            if (x == 0) {
+                s = s + "  nenhum\n";
+            }
+            s = s + "\n";
+
+            // ultimo manejo
+            ResultSet rs4 = st.executeQuery("SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC LIMIT 1");
+            if (rs4.next()) {
+                SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+                s = s + "Ultimo manejo realizado:\n";
+                s = s + "  " + f.format(rs4.getDate("data_realizacao")) + " - " + rs4.getString("tipo_procedimento") + " na colmeia "
+                        + rs4.getString("codigo_identificador") + " (" + rs4.getString("nome_setor") + ") por " + rs4.getString("tecnico") + "\n";
+            } else {
+                s = s + "Nenhum manejo registrado ainda\n";
+            }
+            con.close();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Erro ao gerar relatorio: " + e.getMessage());
+            return;
+        }
+        javax.swing.JTextArea area = new javax.swing.JTextArea(s);
+        area.setEditable(false);
+        JOptionPane.showMessageDialog(null, area, "Relatorio ApiCativo", JOptionPane.INFORMATION_MESSAGE);
+    }
 
     /**
      * @param args the command line arguments
@@ -177,6 +252,7 @@ public class TelaPrincipal extends javax.swing.JFrame {
     private javax.swing.JButton btnHistorico;
     private javax.swing.JButton btnLocalizacoes;
     private javax.swing.JButton btnManejos;
+    private javax.swing.JButton btnRelatorio;
     private javax.swing.JButton btnTecnicos;
     private javax.swing.JLabel jLabel1;
     // End of variables declaration//GEN-END:variables

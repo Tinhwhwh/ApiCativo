@@ -7,9 +7,9 @@ package com.mycompany.apicativo;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.text.SimpleDateFormat;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -25,7 +25,7 @@ public class TelaHistorico extends javax.swing.JFrame {
     public TelaHistorico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new ModeloTabelaSomenteLeitura();
+        modelo = new DefaultTableModel();
         modelo.addColumn("ID");
         modelo.addColumn("Colmeia");
         modelo.addColumn("Manejo");
@@ -33,7 +33,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         modelo.addColumn("Data");
         modelo.addColumn("Observacoes");
         tabela.setModel(modelo);
-        carregarColmeiasManejosETecnicos();
+        carregarCombos();
         listar();
     }
 
@@ -62,7 +62,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         btnSalvar = new javax.swing.JButton();
         btnEditar = new javax.swing.JButton();
         btnExcluir = new javax.swing.JButton();
-        btnDoTecnico = new javax.swing.JButton();
+        btnBuscar = new javax.swing.JButton();
         btnDaColmeia = new javax.swing.JButton();
         btnListar = new javax.swing.JButton();
         btnLimpar = new javax.swing.JButton();
@@ -70,8 +70,6 @@ public class TelaHistorico extends javax.swing.JFrame {
         tabela = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        txtId.setEditable(false);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
@@ -118,10 +116,10 @@ public class TelaHistorico extends javax.swing.JFrame {
             }
         });
 
-        btnDoTecnico.setText("Do tecnico");
-        btnDoTecnico.addActionListener(new java.awt.event.ActionListener() {
+        btnBuscar.setText("Buscar ID");
+        btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btnDoTecnicoActionPerformed(evt);
+                btnBuscarActionPerformed(evt);
             }
         });
 
@@ -204,7 +202,7 @@ public class TelaHistorico extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnExcluir, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(btnDoTecnico, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(btnBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(btnDaColmeia, javax.swing.GroupLayout.PREFERRED_SIZE, 105, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -251,7 +249,7 @@ public class TelaHistorico extends javax.swing.JFrame {
                     .addComponent(btnSalvar)
                     .addComponent(btnEditar)
                     .addComponent(btnExcluir)
-                    .addComponent(btnDoTecnico)
+                    .addComponent(btnBuscar)
                     .addComponent(btnDaColmeia)
                     .addComponent(btnListar)
                     .addComponent(btnLimpar)
@@ -277,12 +275,12 @@ public class TelaHistorico extends javax.swing.JFrame {
         excluir();
     }//GEN-LAST:event_btnExcluirActionPerformed
 
-    private void btnDoTecnicoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDoTecnicoActionPerformed
-        listarManejosDoTecnicoSelecionado();
-    }//GEN-LAST:event_btnDoTecnicoActionPerformed
+    private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
+        buscar();
+    }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnDaColmeiaActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnDaColmeiaActionPerformed
-        listarManejosDaColmeiaSelecionada();
+        listarDaColmeia();
     }//GEN-LAST:event_btnDaColmeiaActionPerformed
 
     private void btnListarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarActionPerformed
@@ -303,30 +301,31 @@ public class TelaHistorico extends javax.swing.JFrame {
         txtObs.setText(modelo.getValueAt(linha, 5).toString());
     }//GEN-LAST:event_tabelaMouseClicked
 
-    public void carregarColmeiasManejosETecnicos() {
+    // carrega as colmeias, manejos e tecnicos nos combos
+    public void carregarCombos() {
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
 
-            ResultSet resultado = comando.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
+            ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
             cmbColmeia.removeAllItems();
-            while (resultado.next()) {
-                cmbColmeia.addItem(ItemCombo.montar(resultado.getInt("id_colmeia"), resultado.getString("codigo_identificador")));
+            while (rs.next()) {
+                cmbColmeia.addItem(rs.getInt("id_colmeia") + " - " + rs.getString("codigo_identificador"));
             }
 
-            resultado = comando.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
+            rs = st.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
             cmbManejo.removeAllItems();
-            while (resultado.next()) {
-                cmbManejo.addItem(ItemCombo.montar(resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento")));
+            while (rs.next()) {
+                cmbManejo.addItem(rs.getInt("id_manejo") + " - " + rs.getString("tipo_procedimento"));
             }
 
-            resultado = comando.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
+            rs = st.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
             cmbTecnico.removeAllItems();
-            while (resultado.next()) {
-                cmbTecnico.addItem(ItemCombo.montar(resultado.getInt("id_tecnico"), resultado.getString("nome")));
+            while (rs.next()) {
+                cmbTecnico.addItem(rs.getInt("id_tecnico") + " - " + rs.getString("nome"));
             }
 
-            conexao.close();
+            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao carregar dados: " + e.getMessage());
         }
@@ -337,29 +336,31 @@ public class TelaHistorico extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Precisa ter colmeia, manejo e tecnico cadastrados!");
             return;
         }
-        if (GenericValidator.isBlankOrNull(txtData.getText())) {
+        if (txtData.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
             return;
         }
-        if (!ConversorData.isDataValida(txtData.getText())) {
+        String data = "";
+        try {
+            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
+            f1.setLenient(false);
+            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
+            data = f2.format(f1.parse(txtData.getText()));
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String data = ConversorData.paraBanco(txtData.getText());
-        if (txtObs.getText().length() > 255) {
-            JOptionPane.showMessageDialog(null, "Observacao muito grande! Maximo 255 caracteres");
-            return;
-        }
-        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
-        String idManejo = ItemCombo.idSelecionado(cmbManejo);
-        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
+        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
+        String idManejo = cmbManejo.getSelectedItem().toString().split(" - ")[0];
+        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
             String sql = "INSERT INTO colmeia_manejo (id_colmeia, id_manejo, data_realizacao, observacoes, id_tecnico) VALUES ("
                     + idColmeia + ", " + idManejo + ", '" + data + "', '" + txtObs.getText() + "', " + idTecnico + ")";
-            comando.executeUpdate(sql);
-            conexao.close();
+            System.out.println(sql);
+            st.executeUpdate(sql);
+            con.close();
             JOptionPane.showMessageDialog(null, "Manejo registrado no historico!");
             limpar();
             listar();
@@ -369,34 +370,36 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
+        if (txtId.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Selecione um registro na tabela ou digite o ID!");
             return;
         }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
-            return;
-        }
-        if (GenericValidator.isBlankOrNull(txtData.getText())) {
+        if (txtData.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Preencha a data!");
             return;
         }
-        if (!ConversorData.isDataValida(txtData.getText())) {
+        String data = "";
+        try {
+            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
+            f1.setLenient(false);
+            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
+            data = f2.format(f1.parse(txtData.getText()));
+        } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String data = ConversorData.paraBanco(txtData.getText());
-        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
-        String idManejo = ItemCombo.idSelecionado(cmbManejo);
-        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
+        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
+        String idManejo = cmbManejo.getSelectedItem().toString().split(" - ")[0];
+        String idTecnico = cmbTecnico.getSelectedItem().toString().split(" - ")[0];
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
             String sql = "UPDATE colmeia_manejo SET id_colmeia = " + idColmeia + ", id_manejo = " + idManejo + ", data_realizacao = '" + data
                     + "', observacoes = '" + txtObs.getText() + "', id_tecnico = " + idTecnico + " WHERE id_colmeia_manejo = " + txtId.getText();
-            int linhasAlteradas = comando.executeUpdate(sql);
-            conexao.close();
-            if (linhasAlteradas > 0) {
+            System.out.println(sql);
+            int linhas = st.executeUpdate(sql);
+            con.close();
+            if (linhas > 0) {
                 JOptionPane.showMessageDialog(null, "Registro atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum registro encontrado com esse ID");
@@ -409,22 +412,18 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
+        if (txtId.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Selecione um registro na tabela ou digite o ID!");
             return;
         }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
-            return;
-        }
-        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o registro " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (confirmacao == JOptionPane.YES_OPTION) {
+        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o registro " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (resp == JOptionPane.YES_OPTION) {
             try {
-                Connection conexao = Conexao.conectar();
-                Statement comando = conexao.createStatement();
+                Connection con = Conexao.conectar();
+                Statement st = con.createStatement();
                 String sql = "DELETE FROM colmeia_manejo WHERE id_colmeia_manejo = " + txtId.getText();
-                comando.executeUpdate(sql);
-                conexao.close();
+                st.executeUpdate(sql);
+                con.close();
                 JOptionPane.showMessageDialog(null, "Registro excluido!");
                 limpar();
                 listar();
@@ -434,44 +433,67 @@ public class TelaHistorico extends javax.swing.JFrame {
         }
     }
 
-    public void listarManejosDaColmeiaSelecionada() {
+    public void buscar() {
+        if (txtId.getText().equals("")) {
+            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
+            return;
+        }
+        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia_manejo = " + txtId.getText());
+        if (modelo.getRowCount() == 0) {
+            JOptionPane.showMessageDialog(null, "Registro nao encontrado");
+        }
+    }
+
+    // mostra so os manejos da colmeia escolhida no combo
+    public void listarDaColmeia() {
         if (cmbColmeia.getSelectedItem() == null) {
             return;
         }
-        String idColmeia = ItemCombo.idSelecionado(cmbColmeia);
-        carregarTabela("SELECT * FROM vw_historico_completo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
-    }
-
-    public void listarManejosDoTecnicoSelecionado() {
-        if (cmbTecnico.getSelectedItem() == null) {
-            return;
-        }
-        String idTecnico = ItemCombo.idSelecionado(cmbTecnico);
-        carregarTabela("SELECT * FROM vw_historico_completo WHERE id_tecnico = " + idTecnico + " ORDER BY data_realizacao DESC");
+        String idColmeia = cmbColmeia.getSelectedItem().toString().split(" - ")[0];
+        carregarTabela("SELECT * FROM colmeia_manejo WHERE id_colmeia = " + idColmeia + " ORDER BY data_realizacao DESC");
     }
 
     public void listar() {
-        carregarTabela("SELECT * FROM vw_historico_completo ORDER BY data_realizacao DESC");
+        carregarTabela("SELECT * FROM colmeia_manejo ORDER BY data_realizacao DESC");
     }
 
     public void carregarTabela(String sql) {
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
-            ResultSet resultado = comando.executeQuery(sql);
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery(sql);
             modelo.setRowCount(0);
-            while (resultado.next()) {
-                String observacao = resultado.getString("observacoes");
-                if (observacao == null) {
-                    observacao = "";
+            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
+            while (rs.next()) {
+                // busca o nome de cada coisa
+                String colmeia = "";
+                Statement st2 = con.createStatement();
+                ResultSet rs2 = st2.executeQuery("SELECT * FROM colmeia WHERE id_colmeia = " + rs.getInt("id_colmeia"));
+                if (rs2.next()) {
+                    colmeia = rs2.getInt("id_colmeia") + " - " + rs2.getString("codigo_identificador");
                 }
-                modelo.addRow(new Object[]{resultado.getInt("id_colmeia_manejo"),
-                    ItemCombo.montar(resultado.getInt("id_colmeia"), resultado.getString("codigo_identificador")),
-                    ItemCombo.montar(resultado.getInt("id_manejo"), resultado.getString("tipo_procedimento")),
-                    ItemCombo.montar(resultado.getInt("id_tecnico"), resultado.getString("tecnico")),
-                    ConversorData.paraTela(resultado.getDate("data_realizacao")), observacao});
+
+                String manejo = "";
+                Statement st3 = con.createStatement();
+                ResultSet rs3 = st3.executeQuery("SELECT * FROM manejo WHERE id_manejo = " + rs.getInt("id_manejo"));
+                if (rs3.next()) {
+                    manejo = rs3.getInt("id_manejo") + " - " + rs3.getString("tipo_procedimento");
+                }
+
+                String tecnico = "";
+                Statement st4 = con.createStatement();
+                ResultSet rs4 = st4.executeQuery("SELECT * FROM tecnico WHERE id_tecnico = " + rs.getInt("id_tecnico"));
+                if (rs4.next()) {
+                    tecnico = rs4.getInt("id_tecnico") + " - " + rs4.getString("nome");
+                }
+
+                String obs = rs.getString("observacoes");
+                if (obs == null) {
+                    obs = "";
+                }
+                modelo.addRow(new Object[]{rs.getInt("id_colmeia_manejo"), colmeia, manejo, tecnico, f.format(rs.getDate("data_realizacao")), obs});
             }
-            conexao.close();
+            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
         }
@@ -528,7 +550,7 @@ public class TelaHistorico extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btnDoTecnico;
+    private javax.swing.JButton btnBuscar;
     private javax.swing.JButton btnDaColmeia;
     private javax.swing.JButton btnEditar;
     private javax.swing.JButton btnExcluir;

@@ -9,7 +9,6 @@ import java.sql.ResultSet;
 import java.sql.Statement;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
-import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -25,7 +24,7 @@ public class TelaTecnico extends javax.swing.JFrame {
     public TelaTecnico() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new ModeloTabelaSomenteLeitura();
+        modelo = new DefaultTableModel();
         modelo.addColumn("ID");
         modelo.addColumn("Nome");
         modelo.addColumn("Descricao");
@@ -60,8 +59,6 @@ public class TelaTecnico extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
-        txtId.setEditable(false);
-
         btnSalvar.setText("Salvar");
         btnSalvar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -85,7 +82,7 @@ public class TelaTecnico extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar");
+        btnBuscar.setText("Buscar ID");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -235,20 +232,17 @@ public class TelaTecnico extends javax.swing.JFrame {
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
-        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
+        if (txtNome.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome!");
             return;
         }
-        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
-            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
-            return;
-        }
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
             String sql = "INSERT INTO tecnico (nome, descricao_tecnico) VALUES ('" + txtNome.getText() + "', '" + txtDescricao.getText() + "')";
-            comando.executeUpdate(sql);
-            conexao.close();
+            System.out.println(sql);
+            st.executeUpdate(sql);
+            con.close();
             JOptionPane.showMessageDialog(null, "Tecnico salvo com sucesso!");
             limpar();
             listar();
@@ -258,29 +252,22 @@ public class TelaTecnico extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
+        if (txtId.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Selecione um tecnico na tabela ou digite o ID!");
             return;
         }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
-            return;
-        }
-        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
+        if (txtNome.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome!");
             return;
         }
-        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
-            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
-            return;
-        }
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
             String sql = "UPDATE tecnico SET nome = '" + txtNome.getText() + "', descricao_tecnico = '" + txtDescricao.getText() + "' WHERE id_tecnico = " + txtId.getText();
-            int linhasAlteradas = comando.executeUpdate(sql);
-            conexao.close();
-            if (linhasAlteradas > 0) {
+            System.out.println(sql);
+            int linhas = st.executeUpdate(sql);
+            con.close();
+            if (linhas > 0) {
                 JOptionPane.showMessageDialog(null, "Tecnico atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum tecnico encontrado com esse ID");
@@ -293,22 +280,18 @@ public class TelaTecnico extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (GenericValidator.isBlankOrNull(txtId.getText())) {
+        if (txtId.getText().equals("")) {
             JOptionPane.showMessageDialog(null, "Selecione um tecnico na tabela ou digite o ID!");
             return;
         }
-        if (!GenericValidator.isInt(txtId.getText())) {
-            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
-            return;
-        }
-        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o tecnico " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (confirmacao == JOptionPane.YES_OPTION) {
+        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o tecnico " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (resp == JOptionPane.YES_OPTION) {
             try {
-                Connection conexao = Conexao.conectar();
-                Statement comando = conexao.createStatement();
+                Connection con = Conexao.conectar();
+                Statement st = con.createStatement();
                 String sql = "DELETE FROM tecnico WHERE id_tecnico = " + txtId.getText();
-                comando.executeUpdate(sql);
-                conexao.close();
+                st.executeUpdate(sql);
+                con.close();
                 JOptionPane.showMessageDialog(null, "Tecnico excluido!");
                 limpar();
                 listar();
@@ -319,33 +302,23 @@ public class TelaTecnico extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
-            JOptionPane.showMessageDialog(null, "Digite o nome do tecnico pra buscar!");
+        if (txtId.getText().equals("")) {
+            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
             return;
         }
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
-            ResultSet resultado = comando.executeQuery("SELECT * FROM tecnico WHERE nome ILIKE '%" + txtNome.getText() + "%' ORDER BY id_tecnico");
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM tecnico WHERE id_tecnico = " + txtId.getText());
             modelo.setRowCount(0);
-            int quantidadeEncontrada = 0;
-            while (resultado.next()) {
-                String descricao = resultado.getString("descricao_tecnico");
-                if (descricao == null) {
-                    descricao = "";
-                }
-                modelo.addRow(new Object[]{resultado.getInt("id_tecnico"), resultado.getString("nome"), descricao});
-                quantidadeEncontrada++;
+            if (rs.next()) {
+                txtNome.setText(rs.getString("nome"));
+                txtDescricao.setText(rs.getString("descricao_tecnico"));
+                modelo.addRow(new Object[]{rs.getInt("id_tecnico"), rs.getString("nome"), rs.getString("descricao_tecnico")});
+            } else {
+                JOptionPane.showMessageDialog(null, "Tecnico nao encontrado");
             }
-            conexao.close();
-            if (quantidadeEncontrada == 0) {
-                JOptionPane.showMessageDialog(null, "Nenhum tecnico encontrado");
-            } else if (quantidadeEncontrada == 1) {
-                // se achou so um ja preenche os campos
-                txtId.setText(modelo.getValueAt(0, 0).toString());
-                txtNome.setText(modelo.getValueAt(0, 1).toString());
-                txtDescricao.setText(modelo.getValueAt(0, 2).toString());
-            }
+            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
         }
@@ -353,18 +326,18 @@ public class TelaTecnico extends javax.swing.JFrame {
 
     public void listar() {
         try {
-            Connection conexao = Conexao.conectar();
-            Statement comando = conexao.createStatement();
-            ResultSet resultado = comando.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
+            Connection con = Conexao.conectar();
+            Statement st = con.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM tecnico ORDER BY id_tecnico");
             modelo.setRowCount(0);
-            while (resultado.next()) {
-                String descricao = resultado.getString("descricao_tecnico");
-                if (descricao == null) {
-                    descricao = "";
+            while (rs.next()) {
+                String desc = rs.getString("descricao_tecnico");
+                if (desc == null) {
+                    desc = "";
                 }
-                modelo.addRow(new Object[]{resultado.getInt("id_tecnico"), resultado.getString("nome"), descricao});
+                modelo.addRow(new Object[]{rs.getInt("id_tecnico"), rs.getString("nome"), desc});
             }
-            conexao.close();
+            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
         }

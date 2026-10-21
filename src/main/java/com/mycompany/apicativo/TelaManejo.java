@@ -30,9 +30,10 @@ public class TelaManejo extends javax.swing.JFrame {
         modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Tipo procedimento");
-        modelo.addColumn("Descricao");
+        modelo.addColumn("Descrição");
         tabela.setModel(modelo);
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -61,6 +62,7 @@ public class TelaManejo extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Manejos");
 
         txtId.setEditable(false);
 
@@ -108,6 +110,7 @@ public class TelaManejo extends javax.swing.JFrame {
         });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.setToolTipText("Busca manejos pelo tipo digitado");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -160,7 +163,7 @@ public class TelaManejo extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtTipo, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -230,9 +233,13 @@ public class TelaManejo extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         txtTipo.setText(modelo.getValueAt(linha, 1).toString());
         txtDescricao.setText(modelo.getValueAt(linha, 2).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
@@ -242,6 +249,10 @@ public class TelaManejo extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtTipo.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -270,6 +281,10 @@ public class TelaManejo extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtTipo.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -324,6 +339,7 @@ public class TelaManejo extends javax.swing.JFrame {
                 txtId.setText(String.valueOf(manejo.getId()));
                 txtTipo.setText(manejo.getTipoProcedimento());
                 txtDescricao.setText(manejo.getDescricao());
+                atualizarBotoes();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
@@ -345,10 +361,20 @@ public class TelaManejo extends javax.swing.JFrame {
         }
     }
 
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
+    }
+
     public void limpar() {
         txtId.setText("");
         txtTipo.setText("");
         txtDescricao.setText("");
+        atualizarBotoes();
     }
 
     /**

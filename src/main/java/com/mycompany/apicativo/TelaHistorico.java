@@ -41,14 +41,15 @@ public class TelaHistorico extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
-        modelo.addColumn("Colmeia");
+        modelo.addColumn("Colmeia ");
         modelo.addColumn("Manejo");
-        modelo.addColumn("Tecnico");
+        modelo.addColumn("Técnico");
         modelo.addColumn("Data");
-        modelo.addColumn("Observacoes");
+        modelo.addColumn("Observações");
         tabela.setModel(modelo);
         carregarColmeiasManejosETecnicos();
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -84,12 +85,13 @@ public class TelaHistorico extends javax.swing.JFrame {
         tabela = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Histórico de manejos");
 
         txtId.setEditable(false);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Historico de operações");
+        jLabel1.setText("Histórico de operações");
         jLabel1.setAlignmentX(0.5F);
         jLabel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
@@ -103,13 +105,13 @@ public class TelaHistorico extends javax.swing.JFrame {
 
         cmbManejo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {  }));
 
-        jLabel6.setText("Tecnico:");
+        jLabel6.setText("Técnico:");
 
         cmbTecnico.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {  }));
 
         jLabel3.setText("Data (dd/mm/aaaa):");
 
-        jLabel8.setText("Observacoes:");
+        jLabel8.setText("Observações:");
 
         btnSalvar.setText("Salvar");
         btnSalvar.addActionListener(new java.awt.event.ActionListener() {
@@ -132,14 +134,16 @@ public class TelaHistorico extends javax.swing.JFrame {
             }
         });
 
-        btnDoTecnico.setText("Do tecnico");
+        btnDoTecnico.setText("Por técnico");
+        btnDoTecnico.setToolTipText("Lista só os manejos do técnico selecionado");
         btnDoTecnico.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDoTecnicoActionPerformed(evt);
             }
         });
 
-        btnDaColmeia.setText("Da colmeia");
+        btnDaColmeia.setText("Por colmeia");
+        btnDaColmeia.setToolTipText("Lista só os manejos da colmeia selecionada");
         btnDaColmeia.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnDaColmeiaActionPerformed(evt);
@@ -154,6 +158,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         });
 
         btnLimpar.setText("Limpar");
+        btnLimpar.setToolTipText("Limpa os campos e atualiza as listas de colmeias, manejos e técnicos");
         btnLimpar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLimparActionPerformed(evt);
@@ -309,12 +314,16 @@ public class TelaHistorico extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         cmbColmeia.setSelectedItem(modelo.getValueAt(linha, 1).toString());
         cmbManejo.setSelectedItem(modelo.getValueAt(linha, 2).toString());
         cmbTecnico.setSelectedItem(modelo.getValueAt(linha, 3).toString());
         txtData.setText(modelo.getValueAt(linha, 4).toString());
         txtObs.setText(modelo.getValueAt(linha, 5).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void carregarColmeiasManejosETecnicos() {
@@ -380,6 +389,14 @@ public class TelaHistorico extends javax.swing.JFrame {
         }
         if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
+            return;
+        }
+        if (cmbColmeia.getSelectedItem() == null || cmbManejo.getSelectedItem() == null || cmbTecnico.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(null, "Precisa ter colmeia, manejo e tecnico cadastrados!");
+            return;
+        }
+        if (txtObs.getText().length() > 255) {
+            JOptionPane.showMessageDialog(null, "Observacao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -472,7 +489,17 @@ public class TelaHistorico extends javax.swing.JFrame {
         return historico;
     }
 
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
+    }
+
     public void limpar() {
+        carregarColmeiasManejosETecnicos();
         txtId.setText("");
         txtData.setText("");
         txtObs.setText("");
@@ -485,6 +512,7 @@ public class TelaHistorico extends javax.swing.JFrame {
         if (cmbTecnico.getItemCount() > 0) {
             cmbTecnico.setSelectedIndex(0);
         }
+        atualizarBotoes();
     }
 
     /**

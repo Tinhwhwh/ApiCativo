@@ -34,15 +34,16 @@ public class TelaColmeia extends javax.swing.JFrame {
         setLocationRelativeTo(null);
         modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
-        modelo.addColumn("Codigo");
-        modelo.addColumn("Data instalacao");
+        modelo.addColumn("Código");
+        modelo.addColumn("Data de instalação");
         modelo.addColumn("Status");
         modelo.addColumn("Tamanho");
         modelo.addColumn("Estilo");
-        modelo.addColumn("Localizacao");
+        modelo.addColumn("Localização");
         tabela.setModel(modelo);
         carregarLocalizacoes();
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -79,6 +80,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         tabela = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Colmeias");
 
         txtId.setEditable(false);
 
@@ -92,9 +94,9 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         jLabel5.setText("Nome/Código:");
 
-        jLabel2.setText("Data instalacao (dd/mm/aaaa):");
+        jLabel2.setText("Data de instalação (dd/mm/aaaa):");
 
-        jLabel3.setText("Localizacao:");
+        jLabel3.setText("Localização:");
 
         cmbLocal.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] {  }));
 
@@ -132,6 +134,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.setToolTipText("Busca colmeias pelo nome/código digitado");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -146,6 +149,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         });
 
         btnLimpar.setText("Limpar");
+        btnLimpar.setToolTipText("Limpa os campos e atualiza a lista de localizações");
         btnLimpar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnLimparActionPerformed(evt);
@@ -298,6 +302,9 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         txtCodigo.setText(modelo.getValueAt(linha, 1).toString());
         txtData.setText(modelo.getValueAt(linha, 2).toString());
@@ -305,6 +312,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         cmbTamanho.setSelectedItem(modelo.getValueAt(linha, 4).toString());
         cmbEstilo.setSelectedItem(modelo.getValueAt(linha, 5).toString());
         cmbLocal.setSelectedItem(modelo.getValueAt(linha, 6).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void carregarLocalizacoes() {
@@ -372,6 +380,10 @@ public class TelaColmeia extends javax.swing.JFrame {
         }
         if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
+            return;
+        }
+        if (cmbLocal.getSelectedItem() == null) {
+            JOptionPane.showMessageDialog(null, "Cadastre uma localizacao antes!");
             return;
         }
         try {
@@ -464,7 +476,17 @@ public class TelaColmeia extends javax.swing.JFrame {
         return colmeia;
     }
 
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
+    }
+
     public void limpar() {
+        carregarLocalizacoes();
         txtId.setText("");
         txtCodigo.setText("");
         txtData.setText("");
@@ -474,6 +496,7 @@ public class TelaColmeia extends javax.swing.JFrame {
         if (cmbLocal.getItemCount() > 0) {
             cmbLocal.setSelectedIndex(0);
         }
+        atualizarBotoes();
     }
 
     /**

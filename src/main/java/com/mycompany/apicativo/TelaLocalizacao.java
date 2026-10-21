@@ -30,9 +30,10 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Nome do setor");
-        modelo.addColumn("Descricao");
+        modelo.addColumn("Descrição");
         tabela.setModel(modelo);
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -61,10 +62,12 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-
-        txtId.setEditable(false);
+        setTitle("Localizações");
 
         jLabel2.setText("ID:");
+
+        txtId.setEditable(false);
+        txtId.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
 
         jLabel3.setText("Nome do setor:");
 
@@ -92,6 +95,7 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.setToolTipText("Busca setores pelo nome digitado");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -153,16 +157,16 @@ public class TelaLocalizacao extends javax.swing.JFrame {
                                 .addGroup(layout.createSequentialGroup()
                                     .addComponent(jLabel2)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
                                     .addComponent(jLabel3)
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                    .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                    .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
                             .addGroup(layout.createSequentialGroup()
                                 .addGap(18, 18, 18)
                                 .addComponent(jLabel8)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 200, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(117, 117, 117)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addGroup(layout.createSequentialGroup()
@@ -177,7 +181,7 @@ public class TelaLocalizacao extends javax.swing.JFrame {
                                 .addComponent(btnSalvar, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addGap(50, 50, 50)
                                 .addComponent(btnBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                        .addGap(0, 381, Short.MAX_VALUE))
+                        .addGap(0, 0, Short.MAX_VALUE))
                     .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -238,9 +242,13 @@ public class TelaLocalizacao extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         txtNome.setText(modelo.getValueAt(linha, 1).toString());
         txtDescricao.setText(modelo.getValueAt(linha, 2).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
@@ -250,6 +258,10 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -278,6 +290,10 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -332,6 +348,7 @@ public class TelaLocalizacao extends javax.swing.JFrame {
                 txtId.setText(String.valueOf(localizacao.getId()));
                 txtNome.setText(localizacao.getNomeSetor());
                 txtDescricao.setText(localizacao.getDescricao());
+                atualizarBotoes();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
@@ -353,10 +370,20 @@ public class TelaLocalizacao extends javax.swing.JFrame {
         }
     }
 
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
+    }
+
     public void limpar() {
         txtId.setText("");
         txtNome.setText("");
         txtDescricao.setText("");
+        atualizarBotoes();
     }
 
     /**
@@ -407,9 +434,9 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel8;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField txtNome;
-    private javax.swing.JTextField txtDescricao;
     private javax.swing.JTable tabela;
+    private javax.swing.JTextField txtDescricao;
     private javax.swing.JTextField txtId;
+    private javax.swing.JTextField txtNome;
     // End of variables declaration//GEN-END:variables
 }

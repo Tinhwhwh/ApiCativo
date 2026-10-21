@@ -30,9 +30,10 @@ public class TelaTecnico extends javax.swing.JFrame {
         modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Nome");
-        modelo.addColumn("Descricao");
+        modelo.addColumn("Descrição");
         tabela.setModel(modelo);
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -61,6 +62,7 @@ public class TelaTecnico extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Técnicos");
 
         txtId.setEditable(false);
 
@@ -88,6 +90,7 @@ public class TelaTecnico extends javax.swing.JFrame {
         });
 
         btnBuscar.setText("Buscar");
+        btnBuscar.setToolTipText("Busca técnicos pelo nome digitado");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -132,7 +135,7 @@ public class TelaTecnico extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Tecnicos");
+        jLabel1.setText("Técnicos");
         jLabel1.setAlignmentX(0.5F);
         jLabel1.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
@@ -162,7 +165,7 @@ public class TelaTecnico extends javax.swing.JFrame {
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addComponent(txtNome, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
                                     .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
                                 .addGap(0, 0, Short.MAX_VALUE))))
                     .addComponent(jLabel1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
@@ -231,9 +234,13 @@ public class TelaTecnico extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         txtNome.setText(modelo.getValueAt(linha, 1).toString());
         txtDescricao.setText(modelo.getValueAt(linha, 2).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
@@ -243,6 +250,10 @@ public class TelaTecnico extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -271,6 +282,10 @@ public class TelaTecnico extends javax.swing.JFrame {
         }
         if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
             JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
             return;
         }
         try {
@@ -325,6 +340,7 @@ public class TelaTecnico extends javax.swing.JFrame {
                 txtId.setText(String.valueOf(tecnico.getId()));
                 txtNome.setText(tecnico.getNome());
                 txtDescricao.setText(tecnico.getDescricao());
+                atualizarBotoes();
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
@@ -346,10 +362,20 @@ public class TelaTecnico extends javax.swing.JFrame {
         }
     }
 
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
+    }
+
     public void limpar() {
         txtId.setText("");
         txtNome.setText("");
         txtDescricao.setText("");
+        atualizarBotoes();
     }
 
     /**

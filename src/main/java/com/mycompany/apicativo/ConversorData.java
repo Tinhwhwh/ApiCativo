@@ -8,17 +8,16 @@ import org.apache.commons.validator.GenericValidator;
 public class ConversorData {
 
     private static final String FORMATO_TELA = "dd/MM/yyyy";
-    private static final String FORMATO_BANCO = "yyyy-MM-dd";
 
     public static boolean isDataValida(String dataTela) {
         return GenericValidator.isDate(dataTela, FORMATO_TELA, true);
     }
 
-    public static String paraBanco(String dataTela) {
+    public static Date paraData(String dataTela) {
         try {
             SimpleDateFormat formatoTela = new SimpleDateFormat(FORMATO_TELA);
             formatoTela.setLenient(false);
-            return new SimpleDateFormat(FORMATO_BANCO).format(formatoTela.parse(dataTela));
+            return formatoTela.parse(dataTela);
         } catch (ParseException e) {
             throw new IllegalArgumentException("Data invalida: " + dataTela, e);
         }

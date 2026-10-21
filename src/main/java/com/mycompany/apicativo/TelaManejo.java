@@ -4,11 +4,13 @@
  */
 package com.mycompany.apicativo;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import com.mycompany.apicativo.dao.ManejoDAO;
+import com.mycompany.apicativo.dao.ManejoDAOjdbc;
+import com.mycompany.apicativo.modelo.Manejo;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -17,6 +19,7 @@ import javax.swing.table.DefaultTableModel;
 public class TelaManejo extends javax.swing.JFrame {
 
     DefaultTableModel modelo;
+    private final ManejoDAO manejoDAO = new ManejoDAOjdbc();
 
     /**
      * Creates new form TelaManejo
@@ -24,12 +27,13 @@ public class TelaManejo extends javax.swing.JFrame {
     public TelaManejo() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Tipo procedimento");
-        modelo.addColumn("Descricao");
+        modelo.addColumn("Descrição");
         tabela.setModel(modelo);
         listar();
+        atualizarBotoes();
     }
 
     /**
@@ -58,6 +62,9 @@ public class TelaManejo extends javax.swing.JFrame {
         jLabel1 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
+        setTitle("Manejos");
+
+        txtId.setEditable(false);
 
         jLabel3.setText("Tipo:");
 
@@ -102,7 +109,8 @@ public class TelaManejo extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar ID");
+        btnBuscar.setText("Buscar");
+        btnBuscar.setToolTipText("Busca manejos pelo tipo digitado");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -155,7 +163,7 @@ public class TelaManejo extends javax.swing.JFrame {
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(txtTipo, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(txtDescricao, javax.swing.GroupLayout.PREFERRED_SIZE, 279, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(txtId, javax.swing.GroupLayout.PREFERRED_SIZE, 80, javax.swing.GroupLayout.PREFERRED_SIZE))
                         .addGap(0, 0, Short.MAX_VALUE))))
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
@@ -225,23 +233,31 @@ public class TelaManejo extends javax.swing.JFrame {
 
     private void tabelaMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_tabelaMouseClicked
         int linha = tabela.getSelectedRow();
+        if (linha < 0) {
+            return; // clicou fora das linhas
+        }
         txtId.setText(modelo.getValueAt(linha, 0).toString());
         txtTipo.setText(modelo.getValueAt(linha, 1).toString());
         txtDescricao.setText(modelo.getValueAt(linha, 2).toString());
+        atualizarBotoes();
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
-        if (txtTipo.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtTipo.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Tipo procedimento!");
             return;
         }
+        if (!GenericValidator.maxLength(txtTipo.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
+            return;
+        }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "INSERT INTO manejo (tipo_procedimento, descricao) VALUES ('" + txtTipo.getText() + "', '" + txtDescricao.getText() + "')";
-            System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            Manejo manejo = new Manejo(0, txtTipo.getText(), txtDescricao.getText());
+            manejoDAO.inserir(manejo);
             JOptionPane.showMessageDialog(null, "Manejo salvo com sucesso!");
             limpar();
             listar();
@@ -251,22 +267,29 @@ public class TelaManejo extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um manejo na tabela ou digite o ID!");
             return;
         }
-        if (txtTipo.getText().equals("")) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtTipo.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Tipo procedimento!");
             return;
         }
+        if (!GenericValidator.maxLength(txtTipo.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtDescricao.getText(), 255)) {
+            JOptionPane.showMessageDialog(null, "Descricao muito grande! Maximo 255 caracteres");
+            return;
+        }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "UPDATE manejo SET tipo_procedimento = '" + txtTipo.getText() + "', descricao = '" + txtDescricao.getText() + "' WHERE id_manejo = " + txtId.getText();
-            System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            Manejo manejo = new Manejo(Integer.parseInt(txtId.getText()), txtTipo.getText(), txtDescricao.getText());
+            if (manejoDAO.atualizar(manejo)) {
                 JOptionPane.showMessageDialog(null, "Manejo atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum manejo encontrado com esse ID");
@@ -279,18 +302,18 @@ public class TelaManejo extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um manejo na tabela ou digite o ID!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o manejo " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o manejo " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
-                String sql = "DELETE FROM manejo WHERE id_manejo = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                manejoDAO.excluir(Integer.parseInt(txtId.getText()));
                 JOptionPane.showMessageDialog(null, "Manejo excluido!");
                 limpar();
                 listar();
@@ -301,23 +324,23 @@ public class TelaManejo extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (txtId.getText().equals("")) {
-            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
+        if (GenericValidator.isBlankOrNull(txtTipo.getText())) {
+            JOptionPane.showMessageDialog(null, "Digite o tipo do procedimento pra buscar!");
             return;
         }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM manejo WHERE id_manejo = " + txtId.getText());
-            modelo.setRowCount(0);
-            if (rs.next()) {
-                txtTipo.setText(rs.getString("tipo_procedimento"));
-                txtDescricao.setText(rs.getString("descricao"));
-                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), rs.getString("descricao")});
-            } else {
-                JOptionPane.showMessageDialog(null, "Manejo nao encontrado");
+            List<Manejo> encontrados = manejoDAO.buscarPorTipo(txtTipo.getText());
+            preencherTabela(encontrados);
+            if (encontrados.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nenhum manejo encontrado");
+            } else if (encontrados.size() == 1) {
+                // se achou so um ja preenche os campos
+                Manejo manejo = encontrados.get(0);
+                txtId.setText(String.valueOf(manejo.getId()));
+                txtTipo.setText(manejo.getTipoProcedimento());
+                txtDescricao.setText(manejo.getDescricao());
+                atualizarBotoes();
             }
-            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
         }
@@ -325,27 +348,33 @@ public class TelaManejo extends javax.swing.JFrame {
 
     public void listar() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM manejo ORDER BY id_manejo");
-            modelo.setRowCount(0);
-            while (rs.next()) {
-                String desc = rs.getString("descricao");
-                if (desc == null) {
-                    desc = "";
-                }
-                modelo.addRow(new Object[]{rs.getInt("id_manejo"), rs.getString("tipo_procedimento"), desc});
-            }
-            con.close();
+            preencherTabela(manejoDAO.listarTodos());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
         }
+    }
+
+    private void preencherTabela(List<Manejo> manejos) {
+        modelo.setRowCount(0);
+        for (Manejo manejo : manejos) {
+            modelo.addRow(new Object[]{manejo.getId(), manejo.getTipoProcedimento(), manejo.getDescricao()});
+        }
+    }
+
+    // so deixa Salvar quando nenhum registro esta selecionado (evita duplicar),
+    // e Editar/Excluir so quando tem um registro selecionado
+    private void atualizarBotoes() {
+        boolean registroSelecionado = !txtId.getText().isEmpty();
+        btnSalvar.setEnabled(!registroSelecionado);
+        btnEditar.setEnabled(registroSelecionado);
+        btnExcluir.setEnabled(registroSelecionado);
     }
 
     public void limpar() {
         txtId.setText("");
         txtTipo.setText("");
         txtDescricao.setText("");
+        atualizarBotoes();
     }
 
     /**

@@ -1,13 +1,25 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.mycompany.apicativo.dao;
 
+import com.mycompany.apicativo.modelo.Localizacao;
+import java.sql.SQLException;
+import java.util.List;
+
 /**
- *
- * @author valentin.carlesso
+ * Operacoes de banco da tabela localizacao.
+ * A tela so conhece esta interface, nunca o SQL.
  */
-public class LocalizacaoDAO {
-    
+public interface LocalizacaoDAO {
+
+    void inserir(Localizacao localizacao) throws SQLException;
+
+    Localizacao buscarPorId(int id) throws SQLException;
+
+    List<Localizacao> buscarPorNome(String nomeSetor) throws SQLException;
+
+    List<Localizacao> listarTodos() throws SQLException;
+
+    /** @return true se algum setor foi alterado */
+    boolean atualizar(Localizacao localizacao) throws SQLException;
+
+    void excluir(int id) throws SQLException;
 }

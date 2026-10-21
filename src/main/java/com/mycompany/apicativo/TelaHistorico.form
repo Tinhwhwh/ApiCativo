@@ -3,6 +3,7 @@
 <Form version="1.5" maxVersion="1.9" type="org.netbeans.modules.form.forminfo.JFrameFormInfo">
   <Properties>
     <Property name="defaultCloseOperation" type="int" value="2"/>
+    <Property name="title" type="java.lang.String" value="Hist&#xf3;rico de manejos"/>
   </Properties>
   <SyntheticProperties>
     <SyntheticProperty name="formSizePolicy" type="int" value="1"/>
@@ -59,7 +60,7 @@
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnExcluir" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
-                      <Component id="btnBuscar" min="-2" pref="105" max="-2" attributes="0"/>
+                      <Component id="btnDoTecnico" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
                       <Component id="btnDaColmeia" min="-2" pref="105" max="-2" attributes="0"/>
                       <EmptySpace max="-2" attributes="0"/>
@@ -107,7 +108,7 @@
                   <Component id="btnSalvar" alignment="3" attributes="0"/>
                   <Component id="btnEditar" alignment="3" attributes="0"/>
                   <Component id="btnExcluir" alignment="3" attributes="0"/>
-                  <Component id="btnBuscar" alignment="3" attributes="0"/>
+                  <Component id="btnDoTecnico" alignment="3" attributes="0"/>
                   <Component id="btnDaColmeia" alignment="3" attributes="0"/>
                   <Component id="btnListar" alignment="3" attributes="0"/>
                   <Component id="btnLimpar" alignment="3" attributes="0"/>
@@ -126,7 +127,7 @@
           <Font name="Segoe UI" size="24" style="1"/>
         </Property>
         <Property name="horizontalAlignment" type="int" value="0"/>
-        <Property name="text" type="java.lang.String" value="Historico de opera&#xe7;&#xf5;es"/>
+        <Property name="text" type="java.lang.String" value="Hist&#xf3;rico de opera&#xe7;&#xf5;es"/>
         <Property name="alignmentX" type="float" value="0.5"/>
         <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
           <Border info="org.netbeans.modules.form.compat2.border.SoftBevelBorderInfo">
@@ -141,6 +142,9 @@
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtId">
+      <Properties>
+        <Property name="editable" type="boolean" value="false"/>
+      </Properties>
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel2">
       <Properties>
@@ -150,8 +154,7 @@
     <Component class="javax.swing.JComboBox" name="cmbColmeia">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="0">
-          </StringArray>
+          <StringArray count="0"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -166,8 +169,7 @@
     <Component class="javax.swing.JComboBox" name="cmbManejo">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="0">
-          </StringArray>
+          <StringArray count="0"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -176,14 +178,13 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel6">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Tecnico:"/>
+        <Property name="text" type="java.lang.String" value="T&#xe9;cnico:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JComboBox" name="cmbTecnico">
       <Properties>
         <Property name="model" type="javax.swing.ComboBoxModel" editor="org.netbeans.modules.form.editors2.ComboBoxModelEditor">
-          <StringArray count="0">
-          </StringArray>
+          <StringArray count="0"/>
         </Property>
       </Properties>
       <AuxValues>
@@ -199,7 +200,7 @@
     </Component>
     <Component class="javax.swing.JLabel" name="jLabel8">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Observacoes:"/>
+        <Property name="text" type="java.lang.String" value="Observa&#xe7;&#xf5;es:"/>
       </Properties>
     </Component>
     <Component class="javax.swing.JTextField" name="txtObs">
@@ -228,17 +229,19 @@
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnExcluirActionPerformed"/>
       </Events>
     </Component>
-    <Component class="javax.swing.JButton" name="btnBuscar">
+    <Component class="javax.swing.JButton" name="btnDoTecnico">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Buscar ID"/>
+        <Property name="text" type="java.lang.String" value="Por t&#xe9;cnico"/>
+        <Property name="toolTipText" type="java.lang.String" value="Lista s&#xf3; os manejos do t&#xe9;cnico selecionado"/>
       </Properties>
       <Events>
-        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnBuscarActionPerformed"/>
+        <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDoTecnicoActionPerformed"/>
       </Events>
     </Component>
     <Component class="javax.swing.JButton" name="btnDaColmeia">
       <Properties>
-        <Property name="text" type="java.lang.String" value="Da colmeia"/>
+        <Property name="text" type="java.lang.String" value="Por colmeia"/>
+        <Property name="toolTipText" type="java.lang.String" value="Lista s&#xf3; os manejos da colmeia selecionada"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnDaColmeiaActionPerformed"/>
@@ -255,6 +258,7 @@
     <Component class="javax.swing.JButton" name="btnLimpar">
       <Properties>
         <Property name="text" type="java.lang.String" value="Limpar"/>
+        <Property name="toolTipText" type="java.lang.String" value="Limpa os campos e atualiza as listas de colmeias, manejos e t&#xe9;cnicos"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="btnLimparActionPerformed"/>

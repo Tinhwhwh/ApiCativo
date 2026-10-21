@@ -4,11 +4,13 @@
  */
 package com.mycompany.apicativo;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
+import com.mycompany.apicativo.dao.LocalizacaoDAO;
+import com.mycompany.apicativo.dao.LocalizacaoDAOjdbc;
+import com.mycompany.apicativo.modelo.Localizacao;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -17,6 +19,7 @@ import javax.swing.table.DefaultTableModel;
 public class TelaLocalizacao extends javax.swing.JFrame {
 
     DefaultTableModel modelo;
+    private final LocalizacaoDAO localizacaoDAO = new LocalizacaoDAOjdbc();
 
     /**
      * Creates new form TelaLocalização
@@ -24,7 +27,7 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     public TelaLocalizacao() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Nome do setor");
         modelo.addColumn("Descricao");
@@ -59,6 +62,8 @@ public class TelaLocalizacao extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         jLabel2.setText("ID:");
 
         jLabel3.setText("Nome do setor:");
@@ -86,7 +91,7 @@ public class TelaLocalizacao extends javax.swing.JFrame {
             }
         });
 
-        btnBuscar.setText("Buscar ID");
+        btnBuscar.setText("Buscar");
         btnBuscar.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 btnBuscarActionPerformed(evt);
@@ -239,17 +244,17 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }//GEN-LAST:event_tabelaMouseClicked
 
     public void salvar() {
-        if (txtNome.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome do setor!");
             return;
         }
+        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "INSERT INTO localizacao (nome_setor, descricao_localizacao) VALUES ('" + txtNome.getText() + "', '" + txtDescricao.getText() + "')";
-            System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            Localizacao localizacao = new Localizacao(0, txtNome.getText(), txtDescricao.getText());
+            localizacaoDAO.inserir(localizacao);
             JOptionPane.showMessageDialog(null, "Setor salvo com sucesso!");
             limpar();
             listar();
@@ -259,22 +264,25 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um setor na tabela ou digite o ID!");
             return;
         }
-        if (txtNome.getText().equals("")) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha o campo Nome do setor!");
             return;
         }
+        if (!GenericValidator.maxLength(txtNome.getText(), 100)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 100 caracteres");
+            return;
+        }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "UPDATE localizacao SET nome_setor = '" + txtNome.getText() + "', descricao_localizacao = '" + txtDescricao.getText() + "' WHERE id_localizacao = " + txtId.getText();
-            System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            Localizacao localizacao = new Localizacao(Integer.parseInt(txtId.getText()), txtNome.getText(), txtDescricao.getText());
+            if (localizacaoDAO.atualizar(localizacao)) {
                 JOptionPane.showMessageDialog(null, "Setor atualizado!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhum setor encontrado com esse ID");
@@ -287,18 +295,18 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione um setor na tabela ou digite o ID!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o setor " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir o setor " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
-                String sql = "DELETE FROM localizacao WHERE id_localizacao = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                localizacaoDAO.excluir(Integer.parseInt(txtId.getText()));
                 JOptionPane.showMessageDialog(null, "Setor excluido!");
                 limpar();
                 listar();
@@ -309,23 +317,22 @@ public class TelaLocalizacao extends javax.swing.JFrame {
     }
 
     public void buscar() {
-        if (txtId.getText().equals("")) {
-            JOptionPane.showMessageDialog(null, "Digite o ID pra buscar!");
+        if (GenericValidator.isBlankOrNull(txtNome.getText())) {
+            JOptionPane.showMessageDialog(null, "Digite o nome do setor pra buscar!");
             return;
         }
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + txtId.getText());
-            modelo.setRowCount(0);
-            if (rs.next()) {
-                txtNome.setText(rs.getString("nome_setor"));
-                txtDescricao.setText(rs.getString("descricao_localizacao"));
-                modelo.addRow(new Object[]{rs.getInt("id_localizacao"), rs.getString("nome_setor"), rs.getString("descricao_localizacao")});
-            } else {
-                JOptionPane.showMessageDialog(null, "Setor nao encontrado");
+            List<Localizacao> encontrados = localizacaoDAO.buscarPorNome(txtNome.getText());
+            preencherTabela(encontrados);
+            if (encontrados.isEmpty()) {
+                JOptionPane.showMessageDialog(null, "Nenhum setor encontrado");
+            } else if (encontrados.size() == 1) {
+                // se achou so um ja preenche os campos
+                Localizacao localizacao = encontrados.get(0);
+                txtId.setText(String.valueOf(localizacao.getId()));
+                txtNome.setText(localizacao.getNomeSetor());
+                txtDescricao.setText(localizacao.getDescricao());
             }
-            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
         }
@@ -333,20 +340,16 @@ public class TelaLocalizacao extends javax.swing.JFrame {
 
     public void listar() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM localizacao ORDER BY id_localizacao");
-            modelo.setRowCount(0);
-            while (rs.next()) {
-                String desc = rs.getString("descricao_localizacao");
-                if (desc == null) {
-                    desc = "";
-                }
-                modelo.addRow(new Object[]{rs.getInt("id_localizacao"), rs.getString("nome_setor"), desc});
-            }
-            con.close();
+            preencherTabela(localizacaoDAO.listarTodos());
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
+        }
+    }
+
+    private void preencherTabela(List<Localizacao> localizacoes) {
+        modelo.setRowCount(0);
+        for (Localizacao localizacao : localizacoes) {
+            modelo.addRow(new Object[]{localizacao.getId(), localizacao.getNomeSetor(), localizacao.getDescricao()});
         }
     }
 

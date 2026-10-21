@@ -4,12 +4,17 @@
  */
 package com.mycompany.apicativo;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.Statement;
-import java.text.SimpleDateFormat;
+import com.mycompany.apicativo.dao.ColmeiaDAO;
+import com.mycompany.apicativo.dao.ColmeiaDAOjdbc;
+import com.mycompany.apicativo.dao.LocalizacaoDAO;
+import com.mycompany.apicativo.dao.LocalizacaoDAOjdbc;
+import com.mycompany.apicativo.modelo.Colmeia;
+import com.mycompany.apicativo.modelo.Localizacao;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.JOptionPane;
 import javax.swing.table.DefaultTableModel;
+import org.apache.commons.validator.GenericValidator;
 
 /**
  *
@@ -18,6 +23,8 @@ import javax.swing.table.DefaultTableModel;
 public class TelaColmeia extends javax.swing.JFrame {
 
     DefaultTableModel modelo;
+    private final ColmeiaDAO colmeiaDAO = new ColmeiaDAOjdbc();
+    private final LocalizacaoDAO localizacaoDAO = new LocalizacaoDAOjdbc();
 
     /**
      * Creates new form TelaColmeia
@@ -25,7 +32,7 @@ public class TelaColmeia extends javax.swing.JFrame {
     public TelaColmeia() {
         initComponents();
         setLocationRelativeTo(null);
-        modelo = new DefaultTableModel();
+        modelo = new ModeloTabelaSomenteLeitura();
         modelo.addColumn("ID");
         modelo.addColumn("Codigo");
         modelo.addColumn("Data instalacao");
@@ -73,6 +80,8 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
 
+        txtId.setEditable(false);
+
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("Colmeias");
@@ -81,7 +90,7 @@ public class TelaColmeia extends javax.swing.JFrame {
 
         jLabel4.setText("ID:");
 
-        jLabel5.setText("Codigo:");
+        jLabel5.setText("Nome/Código:");
 
         jLabel2.setText("Data instalacao (dd/mm/aaaa):");
 
@@ -276,7 +285,7 @@ public class TelaColmeia extends javax.swing.JFrame {
     }//GEN-LAST:event_btnExcluirActionPerformed
 
     private void btnBuscarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnBuscarActionPerformed
-        buscar();
+        buscarPorCodigoOuId();
     }//GEN-LAST:event_btnBuscarActionPerformed
 
     private void btnListarActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btnListarActionPerformed
@@ -300,52 +309,38 @@ public class TelaColmeia extends javax.swing.JFrame {
 
     public void carregarLocalizacoes() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM localizacao ORDER BY id_localizacao");
             cmbLocal.removeAllItems();
-            while (rs.next()) {
-                cmbLocal.addItem(rs.getInt("id_localizacao") + " - " + rs.getString("nome_setor"));
+            for (Localizacao localizacao : localizacaoDAO.listarTodos()) {
+                cmbLocal.addItem(ItemCombo.montar(localizacao.getId(), localizacao.getNomeSetor()));
             }
-            con.close();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, "Erro ao carregar localizacoes: " + e.getMessage());
         }
     }
 
     public void salvar() {
-        if (txtCodigo.getText().equals("")) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+        if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 50 caracteres");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
+            return;
+        }
+        if (!ConversorData.isDataValida(txtData.getText())) {
+            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
         if (cmbLocal.getSelectedItem() == null) {
             JOptionPane.showMessageDialog(null, "Cadastre uma localizacao antes!");
             return;
         }
-        String data = "";
         try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
-            return;
-        }
-        String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
-        try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "INSERT INTO colmeia (codigo_identificador, data_instalacao, status, tamanho_caixa, estilo_caixa, id_localizacao) VALUES ('"
-                    + txtCodigo.getText() + "', '" + data + "', '" + cmbStatus.getSelectedItem() + "', '" + cmbTamanho.getSelectedItem() + "', '"
-                    + cmbEstilo.getSelectedItem() + "', " + idLocal + ")";
-            System.out.println(sql);
-            st.executeUpdate(sql);
-            con.close();
+            colmeiaDAO.inserir(montarColmeiaDosCampos());
             JOptionPane.showMessageDialog(null, "Colmeia salva com sucesso!");
             limpar();
             listar();
@@ -355,40 +350,34 @@ public class TelaColmeia extends javax.swing.JFrame {
     }
 
     public void editar() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione uma colmeia na tabela ou digite o ID!");
             return;
         }
-        if (txtCodigo.getText().equals("")) {
-            JOptionPane.showMessageDialog(null, "Preencha o codigo da colmeia!");
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
             return;
         }
-        if (txtData.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtCodigo.getText())) {
+            JOptionPane.showMessageDialog(null, "Preencha o nome/codigo da colmeia!");
+            return;
+        }
+        if (!GenericValidator.maxLength(txtCodigo.getText(), 50)) {
+            JOptionPane.showMessageDialog(null, "Texto muito grande! Maximo 50 caracteres");
+            return;
+        }
+        if (GenericValidator.isBlankOrNull(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Preencha a data de instalacao!");
             return;
         }
-        String data = "";
-        try {
-            SimpleDateFormat f1 = new SimpleDateFormat("dd/MM/yyyy");
-            f1.setLenient(false);
-            SimpleDateFormat f2 = new SimpleDateFormat("yyyy-MM-dd");
-            data = f2.format(f1.parse(txtData.getText()));
-        } catch (Exception e) {
+        if (!ConversorData.isDataValida(txtData.getText())) {
             JOptionPane.showMessageDialog(null, "Data invalida! Use dd/mm/aaaa");
             return;
         }
-        String idLocal = cmbLocal.getSelectedItem().toString().split(" - ")[0];
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            String sql = "UPDATE colmeia SET codigo_identificador = '" + txtCodigo.getText() + "', data_instalacao = '" + data
-                    + "', status = '" + cmbStatus.getSelectedItem() + "', tamanho_caixa = '" + cmbTamanho.getSelectedItem()
-                    + "', estilo_caixa = '" + cmbEstilo.getSelectedItem() + "', id_localizacao = " + idLocal
-                    + " WHERE id_colmeia = " + txtId.getText();
-            System.out.println(sql);
-            int linhas = st.executeUpdate(sql);
-            con.close();
-            if (linhas > 0) {
+            Colmeia colmeia = montarColmeiaDosCampos();
+            colmeia.setId(Integer.parseInt(txtId.getText()));
+            if (colmeiaDAO.atualizar(colmeia)) {
                 JOptionPane.showMessageDialog(null, "Colmeia atualizada!");
             } else {
                 JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada com esse ID");
@@ -401,18 +390,18 @@ public class TelaColmeia extends javax.swing.JFrame {
     }
 
     public void excluir() {
-        if (txtId.getText().equals("")) {
+        if (GenericValidator.isBlankOrNull(txtId.getText())) {
             JOptionPane.showMessageDialog(null, "Selecione uma colmeia na tabela ou digite o ID!");
             return;
         }
-        int resp = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir a colmeia " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
-        if (resp == JOptionPane.YES_OPTION) {
+        if (!GenericValidator.isInt(txtId.getText())) {
+            JOptionPane.showMessageDialog(null, "O ID tem que ser um numero!");
+            return;
+        }
+        int confirmacao = JOptionPane.showConfirmDialog(null, "Tem certeza que deseja excluir a colmeia " + txtId.getText() + "?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (confirmacao == JOptionPane.YES_OPTION) {
             try {
-                Connection con = Conexao.conectar();
-                Statement st = con.createStatement();
-                String sql = "DELETE FROM colmeia WHERE id_colmeia = " + txtId.getText();
-                st.executeUpdate(sql);
-                con.close();
+                colmeiaDAO.excluir(Integer.parseInt(txtId.getText()));
                 JOptionPane.showMessageDialog(null, "Colmeia excluida!");
                 limpar();
                 listar();
@@ -422,75 +411,57 @@ public class TelaColmeia extends javax.swing.JFrame {
         }
     }
 
-    // busca pelo codigo, se nao tiver codigo busca pelo id
-    public void buscar() {
-        String sql = "";
-        if (!txtCodigo.getText().equals("")) {
-            sql = "SELECT * FROM colmeia WHERE codigo_identificador ILIKE '%" + txtCodigo.getText() + "%' ORDER BY id_colmeia";
-        } else if (!txtId.getText().equals("")) {
-            sql = "SELECT * FROM colmeia WHERE id_colmeia = " + txtId.getText();
-        } else {
-            JOptionPane.showMessageDialog(null, "Digite o codigo ou o ID pra buscar!");
-            return;
-        }
+    public void buscarPorCodigoOuId() {
+        List<Colmeia> encontradas = new ArrayList<>();
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery(sql);
-            modelo.setRowCount(0);
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-            int cont = 0;
-            while (rs.next()) {
-                // pega o nome da localizacao
-                String local = "";
-                Statement st2 = con.createStatement();
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
-                if (rs2.next()) {
-                    local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
+            if (!GenericValidator.isBlankOrNull(txtCodigo.getText())) {
+                encontradas = colmeiaDAO.buscarPorCodigo(txtCodigo.getText());
+            } else if (GenericValidator.isInt(txtId.getText())) {
+                Colmeia colmeia = colmeiaDAO.buscarPorId(Integer.parseInt(txtId.getText()));
+                if (colmeia != null) {
+                    encontradas.add(colmeia);
                 }
-                String data = "";
-                if (rs.getDate("data_instalacao") != null) {
-                    data = f.format(rs.getDate("data_instalacao"));
-                }
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
-                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
-                cont++;
-            }
-            con.close();
-            if (cont == 0) {
-                JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada");
+            } else {
+                JOptionPane.showMessageDialog(null, "Digite o nome/codigo pra buscar!");
+                return;
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Erro ao buscar: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erro ao carregar colmeias: " + e.getMessage());
+            return;
+        }
+        preencherTabela(encontradas);
+        if (encontradas.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Nenhuma colmeia encontrada");
         }
     }
 
     public void listar() {
         try {
-            Connection con = Conexao.conectar();
-            Statement st = con.createStatement();
-            ResultSet rs = st.executeQuery("SELECT * FROM colmeia ORDER BY id_colmeia");
-            modelo.setRowCount(0);
-            SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-            while (rs.next()) {
-                // pega o nome da localizacao
-                String local = "";
-                Statement st2 = con.createStatement();
-                ResultSet rs2 = st2.executeQuery("SELECT * FROM localizacao WHERE id_localizacao = " + rs.getInt("id_localizacao"));
-                if (rs2.next()) {
-                    local = rs2.getInt("id_localizacao") + " - " + rs2.getString("nome_setor");
-                }
-                String data = "";
-                if (rs.getDate("data_instalacao") != null) {
-                    data = f.format(rs.getDate("data_instalacao"));
-                }
-                modelo.addRow(new Object[]{rs.getInt("id_colmeia"), rs.getString("codigo_identificador"), data, rs.getString("status"),
-                    rs.getString("tamanho_caixa"), rs.getString("estilo_caixa"), local});
-            }
-            con.close();
+            preencherTabela(colmeiaDAO.listarTodos());
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Erro ao listar: " + e.getMessage());
+            JOptionPane.showMessageDialog(null, "Erro ao carregar colmeias: " + e.getMessage());
         }
+    }
+
+    private void preencherTabela(List<Colmeia> colmeias) {
+        modelo.setRowCount(0);
+        for (Colmeia colmeia : colmeias) {
+            modelo.addRow(new Object[]{colmeia.getId(), colmeia.getCodigo(),
+                ConversorData.paraTela(colmeia.getDataInstalacao()), colmeia.getStatus(),
+                colmeia.getTamanhoCaixa(), colmeia.getEstiloCaixa(),
+                ItemCombo.montar(colmeia.getIdLocalizacao(), colmeia.getNomeSetor())});
+        }
+    }
+
+    private Colmeia montarColmeiaDosCampos() {
+        Colmeia colmeia = new Colmeia();
+        colmeia.setCodigo(txtCodigo.getText());
+        colmeia.setDataInstalacao(ConversorData.paraData(txtData.getText()));
+        colmeia.setStatus(cmbStatus.getSelectedItem().toString());
+        colmeia.setTamanhoCaixa(cmbTamanho.getSelectedItem().toString());
+        colmeia.setEstiloCaixa(cmbEstilo.getSelectedItem().toString());
+        colmeia.setIdLocalizacao(Integer.parseInt(ItemCombo.idSelecionado(cmbLocal)));
+        return colmeia;
     }
 
     public void limpar() {

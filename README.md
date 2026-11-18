@@ -36,8 +36,23 @@ Requisitos: Java 21 ou superior, Maven (ou NetBeans) e PostgreSQL.
    ou pelo terminal:
    mvn compile exec:java
 
+5. Ao abrir, o sistema pede login. Usuário padrão (criado pelo script):
+   login admin, senha admin.
+
 Ordem sugerida para testar: cadastrar setor, técnico, manejo, colmeia e por 
 último um registro no histórico.
+
+
+## Gerar o executável (.jar)
+
+No NetBeans: botão direito no projeto > Clean and Build, ou pelo terminal:
+   mvn clean package
+
+Isso gera em target/ o arquivo apicativo-1.0-SNAPSHOT.jar e a pasta lib/
+com as bibliotecas (PostgreSQL, FlatLaf...). Para rodar:
+   java -jar target/apicativo-1.0-SNAPSHOT.jar
+
+Para levar para outro computador, copie o .jar junto com a pasta lib/.
 
 
 ## Commits

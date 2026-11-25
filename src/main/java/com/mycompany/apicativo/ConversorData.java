@@ -9,15 +9,19 @@ public class ConversorData {
 
     private static final String FORMATO_TELA = "dd/MM/yyyy";
 
+    /** Confere se o texto e uma data real no formato dd/MM/yyyy (31/02 nao passa). */
     public static boolean isDataValida(String dataTela) {
-        return GenericValidator.isDate(dataTela, FORMATO_TELA, true);
+        return dataTela != null && GenericValidator.isDate(dataTela.trim(), FORMATO_TELA, true);
     }
 
     public static Date paraData(String dataTela) {
+        if (!isDataValida(dataTela)) {
+            throw new IllegalArgumentException("Data invalida: " + dataTela);
+        }
         try {
             SimpleDateFormat formatoTela = new SimpleDateFormat(FORMATO_TELA);
             formatoTela.setLenient(false);
-            return formatoTela.parse(dataTela);
+            return formatoTela.parse(dataTela.trim());
         } catch (ParseException e) {
             throw new IllegalArgumentException("Data invalida: " + dataTela, e);
         }

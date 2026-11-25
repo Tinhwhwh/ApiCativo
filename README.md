@@ -10,7 +10,7 @@ Pra entrar no sistema é preciso fazer login. A partir daí dá pra cadastrar, e
 
 Com o que foi feito
 
-Java 21 com Swing para as telas, usando o FlatLaf para deixar a interface com um visual mais moderno (tema escuro). O banco é PostgreSQL, acessado via JDBC. O Maven cuida das bibliotecas e da geração do executável.
+Java 17 com Swing para as telas, usando o FlatLaf para deixar a interface com um visual mais moderno (tema escuro). O banco é PostgreSQL, acessado via JDBC. O Maven cuida das bibliotecas, dos testes (JUnit 5 e JaCoCo) e da geração do executável.
 
 O código está organizado assim:
 
@@ -18,18 +18,15 @@ modelo/ tem as classes que representam as tabelas do banco
 dao/ tem todo o SQL. As telas nunca falam direto com o banco, sempre passam por aqui
 controladores/ tem as regras e validações, como a do login
 as telas (Tela*.java) ficam no pacote principal, junto com o Apicativo.java, que é por onde o sistema começa
+Conexao, ConfiguracaoBanco e InstaladorBanco cuidam de achar o PostgreSQL e deixar o banco pronto
+src/test/java tem os testes, no mesmo pacote de cada classe testada
 Como rodar
 
-Você vai precisar do Java 21 (ou mais novo), do PostgreSQL e do NetBeans (ou só o Maven, se preferir o terminal).
+Você vai precisar do Java 17 (ou mais novo), do PostgreSQL e do NetBeans (ou só o Maven, se preferir o terminal).
 
-Primeiro crie o banco no PostgreSQL:
+Não precisa mais criar o banco nem rodar script antes. Na primeira vez que abre, o sistema cria o banco apicativo, as tabelas e o usuário padrão sozinho (o script fica em src/main/resources/banco/ApiCativo.sql e vai junto dentro do .jar). Se quiser rodar o script na mão pelo pgAdmin também dá, e agora pode rodar de novo sem dar erro: ele só cria o que ainda não existe.
 
-sql
-CREATE DATABASE apicativo;
-
-Depois abra o pgAdmin, entre no banco apicativo e rode o script ApiCativo.sql pela Query Tool. Ele cria as tabelas, já coloca alguns dados pra teste e cria o usuário padrão.
-
-Dá uma olhada no Conexao.java pra ver se o usuário e a senha do banco batem com os do seu PostgreSQL. Por padrão estão postgres / postgres na porta 5432.
+Por padrão o sistema tenta conectar com postgres / postgres na porta 5432. Se o PostgreSQL do computador tiver outra senha, aparece uma janela pedindo os dados. Eles ficam salvos no arquivo apicativo.properties, na pasta do usuário (C:\Users\seu-usuario no Windows), e na próxima vez já abre direto.
 
 Aí é só abrir o projeto no NetBeans e apertar F6. Pelo terminal também funciona:
 
@@ -45,11 +42,36 @@ No NetBeans, clique com o botão direito no projeto e vá em Clean and Build. Pe
 
 mvn clean package
 
-Vai aparecer na pasta target/ o arquivo apicativo-1.0-SNAPSHOT.jar e uma pasta lib/ com as bibliotecas que o sistema usa. Pra abrir:
+Vai aparecer na pasta target/ o arquivo apicativo.jar, já com todas as bibliotecas dentro (PostgreSQL, FlatLaf...). Pra abrir:
 
-java -jar target/apicativo-1.0-SNAPSHOT.jar
+java -jar target/apicativo.jar
 
-Se for levar pra outro computador, copie o .jar e a pasta lib/ juntos. Sem a lib/ ele não abre. O outro computador também precisa ter Java e acesso ao banco.
+Pra levar pra outro computador é só copiar esse arquivo. O outro computador precisa ter Java 17 ou mais novo e o PostgreSQL instalado (ou acesso a um PostgreSQL na rede). No Windows, com o Java instalado, dá pra abrir com dois cliques.
+
+O .jar também sai pronto na CI: no GitHub, aba Actions, abre a última execução verde e baixa o apicativo-jar em Artifacts.
+
+Testes
+
+Os testes ficam em src/test/java e usam JUnit 5:
+
+mvn test
+
+Tem dois tipos:
+
+unitários, que não usam banco: login (ControlaUsuario), hash da senha, datas (ConversorData), combos (ItemCombo), configuração do banco e leitura do script
+integração, que testam os DAOs no PostgreSQL de verdade, num banco separado chamado apicativo_teste. O banco de verdade nunca entra nos testes. Cada teste roda numa transação e dá rollback no final, então o banco de teste volta do jeito que estava
+
+O apicativo_teste é criado sozinho. Se o PostgreSQL estiver desligado, os testes de integração aparecem como pulados (skipped) em vez de quebrar o build. Se a senha do seu PostgreSQL não for postgres, dá pra trocar pelas variáveis de ambiente APICATIVO_TESTE_SENHA (e _HOST, _PORTA, _BANCO, _USUARIO).
+
+Cobertura
+
+mvn verify
+
+roda os testes e gera o relatório do JaCoCo em target/site/jacoco/index.html. As classes de regra (controladores, ConversorData, ItemCombo e ConfiguracaoBanco) precisam ter pelo menos 70% das linhas cobertas, senão o build falha. As telas ficam fora da conta.
+
+CI
+
+O arquivo .github/workflows/ci.yml roda o mvn verify a cada push e pull request, com um PostgreSQL só pra CI. Aparece o ✔ ou o ✖ do lado de cada commit.
 
 Como o repositório está organizado
 

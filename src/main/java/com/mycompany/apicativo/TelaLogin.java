@@ -2,6 +2,7 @@ package com.mycompany.apicativo;
 
 import com.mycompany.apicativo.controladores.ControlaUsuario;
 import com.mycompany.apicativo.modelo.Usuario;
+import java.sql.SQLException;
 
 public class TelaLogin extends javax.swing.JFrame {
 
@@ -39,7 +40,7 @@ public class TelaLogin extends javax.swing.JFrame {
         btnCancelar.setText("Cancelar");
         btnCancelar.addActionListener(this::btnCancelarActionPerformed);
 
-        lblMensagem.setForeground(new java.awt.Color(92, 107, 122));
+        lblMensagem.setForeground(new java.awt.Color(255, 120, 120));
         lblMensagem.setText(" ");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -109,9 +110,19 @@ public class TelaLogin extends javax.swing.JFrame {
             return;
         }
 
-        Usuario usuario = controladorUsuario.autenticar(login, senha);
+        Usuario usuario;
+        try {
+            usuario = controladorUsuario.autenticar(login, senha);
+        } catch (SQLException ex) {
+            // Antes esse erro virava "Login ou senha inválidos" e escondia o
+            // problema de verdade (banco desligado, tabela usuario faltando...).
+            lblMensagem.setText("<html>Erro no banco: " + Conexao.mensagemAmigavel(ex) + "</html>");
+            pack();
+            return;
+        }
+
         if (usuario == null) {
-            // Mensagem genérica de propósito.
+            // Mensagem genérica de propósito: não conta se o login existe.
             lblMensagem.setText("Login ou senha inválidos.");
             txtSenha.setText("");
             txtSenha.requestFocus();

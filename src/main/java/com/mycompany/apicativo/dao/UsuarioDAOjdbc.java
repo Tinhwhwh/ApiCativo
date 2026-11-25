@@ -1,50 +1,55 @@
 package com.mycompany.apicativo.dao;
 
-import com.mycompany.apicativo.Conexao;
+import com.mycompany.apicativo.controladores.Senha;
 import com.mycompany.apicativo.modelo.Usuario;
-import java.nio.charset.StandardCharsets;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 /**
  * Implementacao do UsuarioDAO usando JDBC.
  * Todo o SQL da tabela usuario fica aqui.
  */
-public class UsuarioDAOjdbc implements UsuarioDAO {
+public class UsuarioDAOjdbc extends DAOBase implements UsuarioDAO {
+
+    public UsuarioDAOjdbc() {
+        super();
+    }
+
+    /** Usado nos testes de integracao (ver DAOBase). */
+    public UsuarioDAOjdbc(Connection conexao) {
+        super(conexao);
+    }
 
     @Override
     public Usuario autenticar(String login, String senha) throws SQLException {
-        // FALHA DE SQL INJECTION: login entra direto na consulta.
-        // Tente logar com    admin' --    para ver o problema.
-        String sql = "SELECT id, nome, login FROM usuario WHERE login = '" + login
-                + "' AND senha_hash = '" + gerarHash(senha) + "'";
-
-        try (Connection conexao = Conexao.conectar();
-             Statement comando = conexao.createStatement();
-             ResultSet resultado = comando.executeQuery(sql)) {
-
-            if (resultado.next()) {
-                return montarUsuario(resultado);
+        // Corrigido: antes o login era colado direto no SQL e "admin' --"
+        // entrava sem senha (SQL Injection). Com "?" o PreparedStatement
+        // manda o texto como dado, nunca como parte do comando.
+        String sql = "SELECT id, nome, login FROM usuario WHERE login = ? AND senha_hash = ?";
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                comando.setString(1, login);
+                comando.setString(2, Senha.gerarHash(senha));
+                try (ResultSet resultado = comando.executeQuery()) {
+                    return resultado.next() ? montarUsuario(resultado) : null;
+                }
             }
-            return null;
-        }
+        });
     }
 
     @Override
     public void salvar(String nome, String login, String senha) throws SQLException {
         String sql = "INSERT INTO usuario (nome, login, senha_hash) VALUES (?, ?, ?)";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setString(1, nome);
-            comando.setString(2, login);
-            comando.setString(3, gerarHash(senha));
-            comando.executeUpdate();
-        }
+        comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                comando.setString(1, nome);
+                comando.setString(2, login);
+                comando.setString(3, Senha.gerarHash(senha));
+                return comando.executeUpdate();
+            }
+        });
     }
 
     private Usuario montarUsuario(ResultSet resultado) throws SQLException {
@@ -52,20 +57,5 @@ public class UsuarioDAOjdbc implements UsuarioDAO {
                 resultado.getInt("id"),
                 resultado.getString("nome"),
                 resultado.getString("login"));
-    }
-
-    /** Gera o SHA-256 da senha em hexadecimal (64 caracteres). */
-    private String gerarHash(String senha) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = digest.digest(senha.getBytes(StandardCharsets.UTF_8));
-            StringBuilder hex = new StringBuilder();
-            for (byte b : bytes) {
-                hex.append(String.format("%02x", b));
-            }
-            return hex.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("SHA-256 indisponivel na JVM", e);
-        }
     }
 }

@@ -1,0 +1,48 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # PostgreSQL de teste so pra esta execucao (some quando termina).
+    # Os testes de integracao criam o banco apicativo_teste e as tabelas sozinhos.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: maven
+
+      # compila, roda os testes, confere a cobertura (JaCoCo) e gera o .jar
+      - run: mvn -B verify
+
+      # o .jar aprovado fica pra baixar na aba Actions -> execucao -> Artifacts
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: apicativo-jar
+          path: target/apicativo.jar
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: relatorio-cobertura
+          path: target/site/jacoco/

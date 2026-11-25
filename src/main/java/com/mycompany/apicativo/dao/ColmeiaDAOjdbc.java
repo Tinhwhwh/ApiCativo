@@ -1,6 +1,5 @@
 package com.mycompany.apicativo.dao;
 
-import com.mycompany.apicativo.Conexao;
 import com.mycompany.apicativo.modelo.Colmeia;
 import java.sql.Connection;
 import java.sql.Date;
@@ -16,88 +15,104 @@ import java.util.Map;
  * Implementacao do ColmeiaDAO usando JDBC e PreparedStatement.
  * Todo o SQL da tabela colmeia fica aqui.
  */
-public class ColmeiaDAOjdbc implements ColmeiaDAO {
+public class ColmeiaDAOjdbc extends DAOBase implements ColmeiaDAO {
 
     // as consultas trazem o nome do setor junto pra mostrar na tela
     private static final String SELECT_COM_SETOR = "SELECT c.*, l.nome_setor FROM colmeia c "
             + "JOIN localizacao l ON l.id_localizacao = c.id_localizacao ";
 
+    public ColmeiaDAOjdbc() {
+        super();
+    }
+
+    /** Usado nos testes de integracao (ver DAOBase). */
+    public ColmeiaDAOjdbc(Connection conexao) {
+        super(conexao);
+    }
+
     @Override
     public void inserir(Colmeia colmeia) throws SQLException {
         String sql = "INSERT INTO colmeia (codigo_identificador, data_instalacao, status, tamanho_caixa, estilo_caixa, id_localizacao) "
                 + "VALUES (?, ?, ?, ?, ?, ?)";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            preencherCampos(comando, colmeia);
-            comando.executeUpdate();
-        }
+        comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                preencherCampos(comando, colmeia);
+                return comando.executeUpdate();
+            }
+        });
     }
 
     @Override
     public Colmeia buscarPorId(int id) throws SQLException {
         String sql = SELECT_COM_SETOR + "WHERE c.id_colmeia = ?";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setInt(1, id);
-            try (ResultSet resultado = comando.executeQuery()) {
-                if (resultado.next()) {
-                    return montarColmeia(resultado);
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                comando.setInt(1, id);
+                try (ResultSet resultado = comando.executeQuery()) {
+                    if (resultado.next()) {
+                        return montarColmeia(resultado);
+                    }
+                    return null;
                 }
-                return null;
             }
-        }
+        });
     }
 
     @Override
     public List<Colmeia> buscarPorCodigo(String codigo) throws SQLException {
         String sql = SELECT_COM_SETOR + "WHERE c.codigo_identificador ILIKE ? ORDER BY c.id_colmeia";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setString(1, "%" + codigo + "%");
-            return montarLista(comando);
-        }
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                comando.setString(1, "%" + codigo + "%");
+                return montarLista(comando);
+            }
+        });
     }
 
     @Override
     public List<Colmeia> listarTodos() throws SQLException {
         String sql = SELECT_COM_SETOR + "ORDER BY c.id_colmeia";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            return montarLista(comando);
-        }
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                return montarLista(comando);
+            }
+        });
     }
 
     @Override
     public boolean atualizar(Colmeia colmeia) throws SQLException {
         String sql = "UPDATE colmeia SET codigo_identificador = ?, data_instalacao = ?, status = ?, tamanho_caixa = ?, "
                 + "estilo_caixa = ?, id_localizacao = ? WHERE id_colmeia = ?";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            preencherCampos(comando, colmeia);
-            comando.setInt(7, colmeia.getId());
-            return comando.executeUpdate() > 0;
-        }
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                preencherCampos(comando, colmeia);
+                comando.setInt(7, colmeia.getId());
+                return comando.executeUpdate() > 0;
+            }
+        });
     }
 
     @Override
     public void excluir(int id) throws SQLException {
         String sql = "DELETE FROM colmeia WHERE id_colmeia = ?";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql)) {
-            comando.setInt(1, id);
-            comando.executeUpdate();
-        }
+        comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql)) {
+                comando.setInt(1, id);
+                return comando.executeUpdate();
+            }
+        });
     }
 
     @Override
     public int contarTodas() throws SQLException {
         String sql = "SELECT COUNT(*) FROM colmeia";
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql);
-             ResultSet resultado = comando.executeQuery()) {
-            resultado.next();
-            return resultado.getInt(1);
-        }
+        return comConexao(conexao -> {
+            try (PreparedStatement comando = conexao.prepareStatement(sql);
+                 ResultSet resultado = comando.executeQuery()) {
+                resultado.next();
+                return resultado.getInt(1);
+            }
+        });
     }
 
     @Override
@@ -126,15 +141,16 @@ public class ColmeiaDAOjdbc implements ColmeiaDAO {
 
     private Map<String, Integer> montarContagem(String sql, String colunaNome) throws SQLException {
         // LinkedHashMap pra manter a ordem que veio do banco
-        Map<String, Integer> contagem = new LinkedHashMap<>();
-        try (Connection conexao = Conexao.conectar();
-             PreparedStatement comando = conexao.prepareStatement(sql);
-             ResultSet resultado = comando.executeQuery()) {
-            while (resultado.next()) {
-                contagem.put(resultado.getString(colunaNome), resultado.getInt("quantidade"));
+        return comConexao(conexao -> {
+            Map<String, Integer> contagem = new LinkedHashMap<>();
+            try (PreparedStatement comando = conexao.prepareStatement(sql);
+                 ResultSet resultado = comando.executeQuery()) {
+                while (resultado.next()) {
+                    contagem.put(resultado.getString(colunaNome), resultado.getInt("quantidade"));
+                }
             }
-        }
-        return contagem;
+            return contagem;
+        });
     }
 
     private List<Colmeia> montarLista(PreparedStatement comando) throws SQLException {

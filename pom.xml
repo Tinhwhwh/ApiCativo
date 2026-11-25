@@ -5,12 +5,17 @@
     <artifactId>apicativo</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>21</maven.compiler.release>
+        <!-- Java 17: o .jar abre em qualquer PC com Java 17 ou mais novo (inclusive 21)
+             e bate com a CI da aula 06, que usa Java 17 -->
+        <maven.compiler.release>17</maven.compiler.release>
         <exec.mainClass>com.mycompany.apicativo.Apicativo</exec.mainClass>
+        <junit.version>5.11.3</junit.version>
     </properties>
-<dependencies>
+
+    <dependencies>
         <!-- Driver PostgreSQL JDBC -->
         <dependency>
             <groupId>org.postgresql</groupId>
@@ -31,43 +36,123 @@
             <artifactId>commons-validator</artifactId>
             <version>1.9.0</version>
         </dependency>
+
+        <!-- Testes (aula 06). scope test: so existe nos testes, nao vai pro .jar -->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
-    <!-- Gera o .jar executavel (aula 05) -->
     <build>
+        <!-- o .jar sai como target/apicativo.jar -->
+        <finalName>apicativo</finalName>
+
         <plugins>
+            <!-- Roda os testes no mvn test -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <!-- classe que tem o main() e abre o login -->
-                            <mainClass>com.mycompany.apicativo.Apicativo</mainClass>
-                            <!-- avisa o jar onde estao as bibliotecas (postgresql, flatlaf...) -->
-                            <addClasspath>true</addClasspath>
-                            <classpathPrefix>lib/</classpathPrefix>
-                        </manifest>
-                    </archive>
-                </configuration>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
             </plugin>
 
-            <!-- Copia as bibliotecas para target/lib, do lado do .jar -->
+            <!-- Cobertura de testes: relatorio em target/site/jacoco/index.html -->
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.12</version>
+                <configuration>
+                    <!-- telas Swing e a classe main ficam fora da conta:
+                         sao testadas no roteiro manual (topo da piramide) -->
+                    <excludes>
+                        <exclude>com/mycompany/apicativo/Tela*</exclude>
+                        <exclude>com/mycompany/apicativo/Apicativo*</exclude>
+                        <exclude>com/mycompany/apicativo/DialogoConfiguracaoBanco*</exclude>
+                    </excludes>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>copiar-dependencias</id>
-                        <phase>package</phase>
                         <goals>
-                            <goal>copy-dependencies</goal>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>verificar</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>report</goal>
+                            <goal>check</goal>
                         </goals>
                         <configuration>
-                            <outputDirectory>${project.build.directory}/lib</outputDirectory>
-                            <includeScope>runtime</includeScope>
+                            <rules>
+                                <!-- o portao: classes de regra com menos de 70% de
+                                     linhas cobertas fazem o mvn verify falhar.
+                                     Os DAOs aparecem no relatorio, mas ficam fora do
+                                     portao porque dependem do PostgreSQL estar ligado -->
+                                <rule>
+                                    <element>CLASS</element>
+                                    <includes>
+                                        <include>com.mycompany.apicativo.controladores.*</include>
+                                        <include>com.mycompany.apicativo.ConversorData</include>
+                                        <include>com.mycompany.apicativo.ItemCombo</include>
+                                        <include>com.mycompany.apicativo.ConfiguracaoBanco</include>
+                                    </includes>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>0.70</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- Gera UM .jar so, com todas as bibliotecas dentro (fat jar).
+                 Nao precisa mais levar a pasta lib/ junto: copia o
+                 apicativo.jar pra qualquer PC com Java 17+ e abre. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.6.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                            <transformers>
+                                <!-- classe que tem o main() e abre o sistema -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.mycompany.apicativo.Apicativo</mainClass>
+                                    <manifestEntries>
+                                        <!-- o FlatLaf tem classes separadas por versao do Java -->
+                                        <Multi-Release>true</Multi-Release>
+                                    </manifestEntries>
+                                </transformer>
+                                <!-- junta os META-INF/services: e por ali que o
+                                     DriverManager acha o driver do PostgreSQL -->
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>module-info.class</exclude>
+                                        <exclude>META-INF/versions/*/module-info.class</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                     </execution>
                 </executions>

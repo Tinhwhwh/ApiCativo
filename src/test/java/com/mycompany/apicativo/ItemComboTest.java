@@ -2,6 +2,7 @@ package com.mycompany.apicativo;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+import javax.swing.JComboBox;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -46,4 +47,20 @@ class ItemComboTest {
     void recusaNull() {
         assertThrows(IllegalArgumentException.class, () -> ItemCombo.extrairId(null));
     }
+
+        @Test
+    @DisplayName("idSelecionado devolve o id do item escolhido no combo")
+    void idDoItemSelecionado() {
+        JComboBox<String> combo = new JComboBox<>(new String[]{"1 - Setor A", "2 - Setor B"});
+        combo.setSelectedIndex(1);
+        assertEquals("2", ItemCombo.idSelecionado(combo));
+    }
+
+    @Test
+    @DisplayName("invalido: combo vazio, sem nada selecionado, e recusado")
+    void comboVazio() {
+        JComboBox<String> combo = new JComboBox<>();
+        assertThrows(IllegalArgumentException.class, () -> ItemCombo.idSelecionado(combo));
+    }
+
 }

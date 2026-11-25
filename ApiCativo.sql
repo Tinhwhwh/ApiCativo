@@ -55,3 +55,16 @@ INSERT INTO localizacao (nome_setor, descricao_localizacao) VALUES ('Setor B', '
 INSERT INTO tecnico (nome, descricao_tecnico) VALUES ('Joao', 'Apicultor');
 INSERT INTO manejo (tipo_procedimento, descricao) VALUES ('Revisao', 'Revisao geral da colmeia');
 INSERT INTO manejo (tipo_procedimento, descricao) VALUES ('Colheita', 'Retirada de melgueiras');
+
+-- usuarios do sistema (login)
+-- a senha nunca fica salva, so o hash SHA-256 dela em hexadecimal
+CREATE TABLE usuario (
+    id SERIAL PRIMARY KEY,
+    nome VARCHAR(150) NOT NULL,
+    login VARCHAR(50) NOT NULL UNIQUE,
+    senha_hash CHAR(64) NOT NULL
+);
+
+-- usuario padrao: login admin, senha admin
+INSERT INTO usuario (nome, login, senha_hash) VALUES
+('Administrador', 'admin', encode(sha256('admin'::bytea), 'hex'));

@@ -9,7 +9,9 @@ public class Apicativo {
         FlatDarkLaf.setup();
 
         SwingUtilities.invokeLater(() -> {
-            TelaPrincipal tela = new TelaPrincipal();
+            // O sistema agora abre pelo login; a TelaPrincipal
+            // so aparece depois que o usuario se autentica.
+            TelaLogin tela = new TelaLogin();
             tela.setVisible(true);
         });
     }
